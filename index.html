@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#08120d" />
+  <title>TRIKITAKA — Tres en raya futbolístico</title>
+  <meta name="description" content="Tres en raya futbolístico: coloca a un jugador que cumpla la fila y la columna. Contra la máquina o con un amigo." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <style>
+    /* ============ TOKENS ============ */
+    :root {
+      --f-display: "Arial Black", "Arial Narrow Bold", Impact, "Haettenschweiler", "Helvetica Neue", sans-serif;
+      --f-body: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --f-mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+
+      --bg: #08120d;
+      --bg2: #0c1913;
+      --panel: #10241a;
+      --panel-2: #17342446;
+      --card: #123123;
+      --ink: #eaf3ec;
+      --muted: #86a996;
+      --line: rgba(224,242,231,.13);
+      --line-strong: rgba(224,242,231,.28);
+      --x: #ffce4a;         /* equipo Local  */
+      --o: #4ad0ec;         /* equipo Visita */
+      --x-ink: #2a2000;
+      --o-ink: #002630;
+      --x-soft: rgba(255,206,74,.14);
+      --o-soft: rgba(74,208,236,.14);
+      --good: #5fd873;
+      --bad: #ff6f6f;
+      --shadow: 0 18px 50px -18px rgba(0,0,0,.7);
+      --radius: 16px;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #e7f0e6;
+        --bg2: #dbe8d9;
+        --panel: #ffffff;
+        --panel-2: #eef5ec;
+        --card: #f3f8f1;
+        --ink: #10251a;
+        --muted: #4d6a5a;
+        --line: rgba(16,40,28,.14);
+        --line-strong: rgba(16,40,28,.30);
+        --x: #d98416;
+        --o: #0c93bb;
+        --x-ink: #3a2600;
+        --o-ink: #05303c;
+        --x-soft: rgba(217,132,22,.13);
+        --o-soft: rgba(12,147,187,.12);
+        --good: #1c9c48;
+        --bad: #cf3f3f;
+        --shadow: 0 18px 44px -20px rgba(20,50,35,.45);
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg:#08120d; --bg2:#0c1913; --panel:#10241a; --panel-2:#17342446; --card:#123123;
+      --ink:#eaf3ec; --muted:#86a996; --line:rgba(224,242,231,.13); --line-strong:rgba(224,242,231,.28);
+      --x:#ffce4a; --o:#4ad0ec; --x-ink:#2a2000; --o-ink:#002630;
+      --x-soft:rgba(255,206,74,.14); --o-soft:rgba(74,208,236,.14);
+      --good:#5fd873; --bad:#ff6f6f; --shadow:0 18px 50px -18px rgba(0,0,0,.7);
+    }
+    :root[data-theme="light"] {
+      --bg:#e7f0e6; --bg2:#dbe8d9; --panel:#ffffff; --panel-2:#eef5ec; --card:#f3f8f1;
+      --ink:#10251a; --muted:#4d6a5a; --line:rgba(16,40,28,.14); --line-strong:rgba(16,40,28,.30);
+      --x:#d98416; --o:#0c93bb; --x-ink:#3a2600; --o-ink:#05303c;
+      --x-soft:rgba(217,132,22,.13); --o-soft:rgba(12,147,187,.12);
+      --good:#1c9c48; --bad:#cf3f3f; --shadow:0 18px 44px -20px rgba(20,50,35,.45);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--f-body);
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 700px at 50% -10%, var(--bg2), transparent 60%),
+        var(--bg);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+    .wrap {
+      max-width: 620px;
+      margin: 0 auto;
+      padding: clamp(14px, 4vw, 28px) clamp(12px, 4vw, 20px) 40px;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ============ CABECERA ============ */
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .crest {
+      width: 40px; height: 40px; flex: none;
+      border-radius: 11px;
+      background: linear-gradient(150deg, var(--x), var(--o));
+      display: grid; place-items: center;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .crest svg { width: 24px; height: 24px; }
+    .brand h1 {
+      font-family: var(--f-display);
+      font-weight: 900;
+      letter-spacing: -.5px;
+      font-size: clamp(20px, 6vw, 26px);
+      margin: 0; line-height: .95;
+      text-transform: uppercase;
+    }
+    .brand .sub { color: var(--muted); font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; margin-top: 2px; }
+    .icon-btn {
+      background: var(--panel); color: var(--ink);
+      border: 1px solid var(--line); border-radius: 11px;
+      width: 40px; height: 40px; cursor: pointer;
+      display: grid; place-items: center; font-size: 17px;
+      transition: transform .15s, background .2s;
+    }
+    .icon-btn:hover { transform: translateY(-1px); }
+
+    /* ============ TARJETA / PANELES ============ */
+    .card {
+      background: linear-gradient(180deg, var(--panel), var(--card));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .screen { display: none; animation: fade .35s ease both; }
+    .screen.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    /* ============ MENÚ ============ */
+    .hero { padding: 26px 20px 22px; text-align: center; position: relative; overflow: hidden; }
+    .hero::before {
+      content: ""; position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 46px, rgba(255,255,255,.03) 46px 92px);
+      pointer-events: none;
+    }
+    .hero .kick { color: var(--muted); text-transform: uppercase; letter-spacing: .22em; font-size: 11px; }
+    .hero h2 {
+      font-family: var(--f-display); text-transform: uppercase; font-weight: 900;
+      font-size: clamp(30px, 10vw, 52px); margin: 6px 0 4px; letter-spacing: -1.5px; line-height: .9;
+      background: linear-gradient(120deg, var(--x), var(--o)); -webkit-background-clip: text;
+      background-clip: text; color: transparent; text-wrap: balance;
+    }
+    .hero p { color: var(--muted); margin: 8px auto 0; max-width: 44ch; font-size: 14px; line-height: 1.5; }
+
+    .block { padding: 18px 16px; }
+    .label { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; color: var(--muted); margin: 4px 2px 10px; font-weight: 700; }
+
+    .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .opt {
+      border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+      border-radius: 13px; padding: 14px 12px; cursor: pointer; text-align: left;
+      transition: border-color .18s, transform .12s, background .18s; font: inherit;
+      display: flex; gap: 11px; align-items: center;
+    }
+    .opt:hover { transform: translateY(-2px); }
+    .opt .em { font-size: 22px; line-height: 1; }
+    .opt b { display: block; font-size: 14.5px; }
+    .opt small { color: var(--muted); font-size: 12px; }
+    .opt[aria-pressed="true"] { border-color: var(--x); background: var(--x-soft); box-shadow: inset 0 0 0 1px var(--x); }
+
+    .levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .lvl {
+      border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+      border-radius: 12px; padding: 12px 6px; cursor: pointer; text-align: center;
+      transition: border-color .18s, transform .12s, background .18s; font: inherit;
+    }
+    .lvl:hover { transform: translateY(-2px); }
+    .lvl .dots { letter-spacing: 2px; font-size: 12px; margin-top: 4px; color: var(--muted); }
+    .lvl b { font-size: 13px; display: block; }
+    .lvl[aria-pressed="true"] { border-color: var(--o); background: var(--o-soft); box-shadow: inset 0 0 0 1px var(--o); }
+    .lvl[data-lvl="ultimate"][aria-pressed="true"] { border-color: var(--bad); background: rgba(255,111,111,.12); box-shadow: inset 0 0 0 1px var(--bad); }
+
+    .cta {
+      width: 100%; margin-top: 8px; border: none; cursor: pointer; font: inherit;
+      font-family: var(--f-display); text-transform: uppercase; letter-spacing: .04em; font-weight: 900;
+      font-size: 18px; color: #06130d; padding: 16px; border-radius: 14px;
+      background: linear-gradient(120deg, var(--x), var(--o));
+      transition: transform .12s, filter .2s; box-shadow: var(--shadow);
+    }
+    .cta:hover { transform: translateY(-2px); filter: brightness(1.05); }
+    .cta:active { transform: translateY(0); }
+
+    .rules { color: var(--muted); font-size: 12.5px; line-height: 1.6; padding: 4px 6px 0; }
+    .rules b { color: var(--ink); }
+
+    /* ============ MARCADOR ============ */
+    .board-head { display: flex; align-items: stretch; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .team {
+      flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 13px;
+      padding: 10px 12px; display: flex; align-items: center; gap: 10px; min-width: 0;
+      transition: box-shadow .2s, border-color .2s, transform .2s;
+    }
+    .team .tk { width: 26px; height: 26px; border-radius: 8px; flex: none; display: grid; place-items: center; font-weight: 900; font-family: var(--f-display); }
+    .team.x .tk { background: var(--x); color: var(--x-ink); }
+    .team.o .tk { background: var(--o); color: var(--o-ink); }
+    .team .nm { font-weight: 700; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .team .sc { margin-left: auto; font-family: var(--f-mono); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .team.active { border-color: currentColor; box-shadow: 0 0 0 1px currentColor, 0 10px 30px -14px rgba(0,0,0,.6); transform: translateY(-2px); }
+    .team.x.active { color: var(--x); }
+    .team.o.active { color: var(--o); }
+    .team.active .nm, .team.active .sc { color: var(--ink); }
+    .vs { align-self: center; font-family: var(--f-display); color: var(--muted); font-size: 12px; letter-spacing: .1em; }
+
+    .status {
+      text-align: center; font-size: 13.5px; color: var(--muted); min-height: 20px;
+      margin: 2px 0 12px; font-weight: 600;
+    }
+    .status b { color: var(--ink); }
+
+    /* ============ CUADRÍCULA ============ */
+    .grid-wrap { position: relative; }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(58px, .72fr) repeat(3, 1fr);
+      grid-template-rows: minmax(52px, auto) repeat(3, 1fr);
+      gap: 7px;
+      background:
+        radial-gradient(circle at 50% 50%, transparent 30%, rgba(255,255,255,.03) 30.5%, transparent 33%),
+        repeating-linear-gradient(0deg, transparent 0 14%, rgba(255,255,255,.02) 14% 28%);
+      padding: 8px; border-radius: 18px;
+      border: 1px solid var(--line);
+    }
+    .hcell {
+      display: grid; place-items: center; text-align: center; padding: 6px 5px;
+      font-size: clamp(9.5px, 2.5vw, 12px); font-weight: 800; line-height: 1.12;
+      text-transform: uppercase; letter-spacing: .02em; color: var(--ink);
+      background: transparent; text-wrap: balance;
+    }
+    .hcell .t { opacity: .95; }
+    .hcell.corner {
+      background: transparent; border: none;
+    }
+    .hcell.corner .mini { display: grid; place-items: center; gap: 3px; color: var(--muted); }
+    .hcell.corner .mini svg { width: 22px; height: 22px; opacity: .8; }
+    .hcell.corner small { font-size: 9px; letter-spacing: .12em; }
+
+    .cell {
+      position: relative; aspect-ratio: 1 / 1; border-radius: 13px; cursor: pointer;
+      background: var(--panel-2); border: 1px solid var(--line);
+      display: grid; place-items: center; padding: 6px; overflow: hidden;
+      transition: transform .12s, border-color .2s, background .2s;
+      font: inherit; color: var(--ink);
+    }
+    .cell:hover:not(.taken):not(:disabled) { transform: translateY(-2px); border-color: var(--line-strong); }
+    .cell .q { font-family: var(--f-display); font-size: 28px; color: var(--muted); opacity: .5; }
+    .cell.playable::after {
+      content: ""; position: absolute; inset: 0; border-radius: 13px;
+      box-shadow: inset 0 0 0 1.5px var(--line-strong);
+      opacity: 0; transition: opacity .2s;
+    }
+    .cell.playable:hover::after { opacity: .0; }
+    .cell .who {
+      position: absolute; top: 6px; right: 7px; width: 20px; height: 20px; border-radius: 6px;
+      display: grid; place-items: center; font-family: var(--f-display); font-weight: 900; font-size: 12px;
+    }
+    .cell .pname {
+      font-size: clamp(10px, 2.7vw, 13px); font-weight: 800; text-align: center; line-height: 1.12;
+      padding: 0 2px; text-wrap: balance;
+    }
+    .cell.taken { cursor: default; }
+    .cell.x { background: var(--x-soft); border-color: var(--x); }
+    .cell.o { background: var(--o-soft); border-color: var(--o); }
+    .cell.x .who { background: var(--x); color: var(--x-ink); }
+    .cell.o .who { background: var(--o); color: var(--o-ink); }
+    .cell.win { animation: pop .5s ease; box-shadow: 0 0 0 2px var(--good), 0 0 26px -4px var(--good); }
+    .cell.pop { animation: pop .4s cubic-bezier(.2,1.4,.3,1) both; }
+    @keyframes pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.06); } 100% { transform: scale(1); opacity: 1; } }
+    .cell.dead { opacity: .45; cursor: not-allowed; }
+    .cell.shake { animation: shake .4s; }
+    @keyframes shake { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-6px);} 40%,80%{transform:translateX(6px);} }
+
+    .controls { display: flex; gap: 9px; margin-top: 16px; }
+    .btn {
+      flex: 1; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+      border-radius: 12px; padding: 12px; cursor: pointer; font: inherit; font-weight: 700; font-size: 13.5px;
+      transition: transform .12s, background .2s, border-color .2s;
+    }
+    .btn:hover { transform: translateY(-2px); border-color: var(--line-strong); }
+    .btn.ghost { background: transparent; }
+
+    /* ============ MODAL ============ */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(3,10,7,.62); backdrop-filter: blur(6px);
+      display: none; align-items: flex-end; justify-content: center; z-index: 40; padding: 0;
+    }
+    .modal-bg.show { display: flex; }
+    @media (min-width: 560px) { .modal-bg { align-items: center; padding: 20px; } }
+    .modal {
+      width: 100%; max-width: 480px; background: linear-gradient(180deg, var(--panel), var(--card));
+      border: 1px solid var(--line); border-radius: 20px 20px 0 0; box-shadow: var(--shadow);
+      padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); animation: rise .3s cubic-bezier(.2,.9,.3,1) both;
+    }
+    @media (min-width: 560px) { .modal { border-radius: 20px; } }
+    @keyframes rise { from { transform: translateY(30px); opacity: .6; } to { transform: none; opacity: 1; } }
+    .modal .cross { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+    .chip {
+      background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: 999px;
+      padding: 7px 13px; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: .02em;
+    }
+    .chip.row { color: var(--ink); box-shadow: inset 0 0 0 1px var(--x); }
+    .chip.col { color: var(--ink); box-shadow: inset 0 0 0 1px var(--o); }
+    .cross .x { color: var(--muted); font-weight: 800; }
+    .modal .ask { text-align: center; color: var(--muted); font-size: 13px; margin: 10px 0 12px; }
+    .modal .ask b { color: var(--ink); }
+    .field { position: relative; }
+    .field input {
+      width: 100%; padding: 15px 14px; border-radius: 13px; border: 1px solid var(--line-strong);
+      background: var(--bg2); color: var(--ink); font: inherit; font-size: 16px; outline: none;
+    }
+    .field input:focus { border-color: var(--x); box-shadow: 0 0 0 3px var(--x-soft); }
+    .sugg {
+      list-style: none; margin: 8px 0 0; padding: 0; max-height: 190px; overflow-y: auto;
+      border-radius: 12px; border: 1px solid var(--line); background: var(--bg2); display: none;
+    }
+    .sugg.show { display: block; }
+    .sugg li { padding: 11px 14px; cursor: pointer; font-size: 14.5px; border-bottom: 1px solid var(--line); }
+    .sugg li:last-child { border-bottom: none; }
+    .sugg li:hover, .sugg li.hi { background: var(--x-soft); }
+    .feedback { min-height: 20px; text-align: center; font-weight: 700; font-size: 13.5px; margin: 12px 0 4px; }
+    .feedback.ok { color: var(--good); }
+    .feedback.err { color: var(--bad); }
+    .modal-actions { display: flex; gap: 9px; margin-top: 12px; }
+    .modal-actions .btn.primary {
+      background: linear-gradient(120deg, var(--x), var(--o)); color: #06130d; border: none; font-weight: 900;
+      font-family: var(--f-display); text-transform: uppercase; letter-spacing: .03em;
+    }
+    .hint-line { text-align: center; font-size: 12.5px; color: var(--muted); margin-top: 10px; min-height: 16px; }
+    .hint-line b { color: var(--ink); }
+
+    /* ============ OVERLAY FIN ============ */
+    .end {
+      position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center;
+      background: rgba(3,10,7,.72); backdrop-filter: blur(7px); padding: 20px; text-align: center;
+    }
+    .end.show { display: flex; animation: fade .3s both; }
+    .end .box { max-width: 420px; }
+    .end .big {
+      font-family: var(--f-display); text-transform: uppercase; font-weight: 900; letter-spacing: -1px;
+      font-size: clamp(38px, 13vw, 64px); line-height: .9; margin: 6px 0;
+      background: linear-gradient(120deg, var(--x), var(--o)); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .end p { color: #dfeee5; font-size: 15px; margin: 6px 0 20px; }
+    .end .btn.primary {
+      background: linear-gradient(120deg, var(--x), var(--o)); color: #06130d; border: none; font-weight: 900;
+      font-family: var(--f-display); text-transform: uppercase; padding: 15px 24px; font-size: 16px; letter-spacing: .03em;
+    }
+    #fx { position: fixed; inset: 0; pointer-events: none; z-index: 55; display: none; }
+    #fx.show { display: block; }
+
+    .foot { text-align: center; color: var(--muted); font-size: 11.5px; margin-top: auto; padding-top: 24px; opacity: .8; }
+    .foot a { color: var(--muted); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+    }
+    :focus-visible { outline: 2px solid var(--o); outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="brand">
+        <div class="crest" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l2.5 1.8-1 3h-3l-1-3L12 2zM4.5 8.2l3 .3.9 3-2.4 1.8-2.6-1.5.1-3.6zM19.5 8.2l.1 3.6-2.6 1.5-2.4-1.8.9-3 3-.3zM8.4 18.6L6.6 21 4 19.6l.6-3 3 .2.8 1.8zM15.6 18.6l.8-1.8 3-.2.6 3L17.4 21l-1.8-2.4zM12 10.4l2.6 1.9-1 3.1h-3.2l-1-3.1L12 10.4z" fill="#06130d"/></svg>
+        </div>
+        <div>
+          <h1>Trikitaka</h1>
+          <div class="sub">Tres en raya futbolístico</div>
+        </div>
+      </div>
+      <button class="icon-btn" id="themeBtn" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+    </header>
+
+    <!-- ======= MENÚ ======= -->
+    <section class="screen active" id="screen-menu">
+      <div class="card hero">
+        <div class="kick">Panini + tres en raya</div>
+        <h2>Alinea a los cracks</h2>
+        <p>Conquista una casilla nombrando a un futbolista que cumpla <b>la fila</b> y <b>la columna</b>. Tres en línea, gana.</p>
+      </div>
+
+      <div class="card block" style="margin-top:14px;">
+        <div class="label">Modo de juego</div>
+        <div class="seg" id="modeSeg">
+          <button class="opt" data-mode="cpu" aria-pressed="true">
+            <span class="em">🤖</span>
+            <span><b>Contra la máquina</b><small>Tú (oro) vs la IA</small></span>
+          </button>
+          <button class="opt" data-mode="local" aria-pressed="false">
+            <span class="em">👥</span>
+            <span><b>Dos jugadores</b><small>Pasa el móvil</small></span>
+          </button>
+        </div>
+
+        <div class="label" style="margin-top:18px;">Dificultad</div>
+        <div class="levels" id="lvlSeg">
+          <button class="lvl" data-lvl="facil" aria-pressed="true"><b>Fácil</b><div class="dots">●○○○</div></button>
+          <button class="lvl" data-lvl="medio" aria-pressed="false"><b>Medio</b><div class="dots">●●○○</div></button>
+          <button class="lvl" data-lvl="dificil" aria-pressed="false"><b>Difícil</b><div class="dots">●●●○</div></button>
+          <button class="lvl" data-lvl="ultimate" aria-pressed="false"><b>Ultimate</b><div class="dots">●●●●</div></button>
+        </div>
+
+        <button class="cta" id="playBtn" style="margin-top:20px;">Jugar ⚽</button>
+
+        <p class="rules">
+          <b>Cómo se juega:</b> por turnos eliges una casilla y escribes un futbolista. Si cumple las dos categorías, la casilla es tuya.
+          Si fallas, pierdes el turno. La dificultad cambia lo raras que son las categorías y la astucia de la máquina.
+        </p>
+      </div>
+
+      <div class="foot">Hecho con ⚽ · funciona sin conexión · instálalo como app</div>
+    </section>
+
+    <!-- ======= JUEGO ======= -->
+    <section class="screen" id="screen-game">
+      <div class="board-head">
+        <div class="team x" id="teamX">
+          <span class="tk">L</span>
+          <span class="nm" id="nameX">Local</span>
+          <span class="sc" id="scoreX">0</span>
+        </div>
+        <div class="vs">VS</div>
+        <div class="team o" id="teamO">
+          <span class="tk">V</span>
+          <span class="nm" id="nameO">Visita</span>
+          <span class="sc" id="scoreO">0</span>
+        </div>
+      </div>
+
+      <div class="status" id="status">Tu turno</div>
+
+      <div class="grid-wrap">
+        <div class="grid" id="grid"><!-- generado por JS --></div>
+      </div>
+
+      <div class="controls">
+        <button class="btn ghost" id="menuBtn">◀ Menú</button>
+        <button class="btn" id="againBtn">Nueva cuadrícula</button>
+      </div>
+
+      <div class="foot" id="lvlFoot"></div>
+    </section>
+  </div>
+
+  <!-- ======= MODAL RESPUESTA ======= -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle">
+      <div class="cross" id="mtitle">
+        <span class="chip row" id="chipRow">Fila</span>
+        <span class="x">✕</span>
+        <span class="chip col" id="chipCol">Columna</span>
+      </div>
+      <div class="ask">Escribe un <b>futbolista</b> que cumpla ambas.</div>
+      <div class="field">
+        <input id="answer" type="text" placeholder="Ej. Messi…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" />
+        <ul class="sugg" id="sugg"></ul>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="passBtn">Rendir turno</button>
+        <button class="btn primary" id="submitBtn">Confirmar</button>
+      </div>
+      <div class="hint-line" id="hintLine"><a href="#" id="hintBtn" style="color:var(--muted)">💡 Pista</a></div>
+    </div>
+  </div>
+
+  <!-- ======= FIN DE PARTIDA ======= -->
+  <div class="end" id="end">
+    <div class="box">
+      <div class="kick" style="color:#bcd; letter-spacing:.2em; text-transform:uppercase; font-size:12px;" id="endKick">Final</div>
+      <div class="big" id="endBig">¡GOL!</div>
+      <p id="endMsg"></p>
+      <button class="btn primary" id="endBtn">Jugar otra vez</button>
+    </div>
+  </div>
+  <canvas id="fx"></canvas>
+
+  <script src="core.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var FGC = window.FGC;
+    var $ = function (s) { return document.querySelector(s); };
+
+    /* ---------- Tema ---------- */
+    var themeBtn = $('#themeBtn');
+    themeBtn.addEventListener('click', function () {
+      var cur = document.documentElement.getAttribute('data-theme');
+      var mqDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var isDark = cur ? cur === 'dark' : mqDark;
+      document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    });
+
+    /* ---------- Selección de menú ---------- */
+    var mode = 'cpu', level = 'facil';
+    document.querySelectorAll('#modeSeg .opt').forEach(function (b) {
+      b.addEventListener('click', function () {
+        mode = b.dataset.mode;
+        document.querySelectorAll('#modeSeg .opt').forEach(function (o) { o.setAttribute('aria-pressed', o === b); });
+      });
+    });
+    document.querySelectorAll('#lvlSeg .lvl').forEach(function (b) {
+      b.addEventListener('click', function () {
+        level = b.dataset.lvl;
+        document.querySelectorAll('#lvlSeg .lvl').forEach(function (o) { o.setAttribute('aria-pressed', o === b); });
+      });
+    });
+
+    /* ---------- Estado de partida ---------- */
+    var G = null;                 // grid actual
+    var board = [];               // 9 marcas '', 'X', 'O'
+    var cellPlayer = [];          // nombre por celda
+    var used = {};                // nombres usados
+    var turn = 'X';
+    var over = false;
+    var scores = { X: 0, O: 0 };
+    var activeCell = -1;
+    var busy = false;             // bloquea input durante turno IA / animaciones
+    var LVL_NAME = { facil: 'Fácil', medio: 'Medio', dificil: 'Difícil', ultimate: 'Ultimate' };
+
+    function humanIs(m) { return mode === 'local' ? true : m === 'X'; }
+    function teamName(m) {
+      if (mode === 'local') return m === 'X' ? 'Jugador 1' : 'Jugador 2';
+      return m === 'X' ? 'Tú' : 'Máquina';
+    }
+
+    /* ---------- Pantallas ---------- */
+    function show(id) {
+      document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('active'); });
+      $('#' + id).classList.add('active');
+    }
+
+    /* ---------- Iniciar ---------- */
+    function startGame() {
+      scores = { X: 0, O: 0 };
+      $('#scoreX').textContent = '0';
+      $('#scoreO').textContent = '0';
+      $('#nameX').textContent = teamName('X');
+      $('#nameO').textContent = teamName('O');
+      $('#teamX .tk').textContent = mode === 'local' ? '1' : 'L';
+      $('#teamO .tk').textContent = mode === 'local' ? '2' : 'V';
+      $('#lvlFoot').textContent = 'Nivel ' + LVL_NAME[level] + ' · ' + (mode === 'cpu' ? 'vs Máquina' : '2 jugadores');
+      show('screen-game');
+      newGrid();
+    }
+
+    function newGrid() {
+      G = FGC.generateGrid(level);
+      board = ['', '', '', '', '', '', '', '', ''];
+      cellPlayer = new Array(9).fill('');
+      used = {};
+      over = false;
+      busy = false;
+      turn = 'X';
+      renderGrid();
+      updateTurn();
+      // si por modo empieza la IA no aplica (humano X siempre empieza)
+    }
+
+    /* ---------- Render ---------- */
+    function renderGrid() {
+      var g = $('#grid');
+      g.innerHTML = '';
+
+      // esquina
+      var corner = document.createElement('div');
+      corner.className = 'hcell corner';
+      corner.innerHTML = '<div class="mini"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="1"/></svg><small>FILA ✕ COL</small></div>';
+      g.appendChild(corner);
+
+      // cabeceras columnas
+      for (var c = 0; c < 3; c++) {
+        var h = document.createElement('div');
+        h.className = 'hcell';
+        h.innerHTML = '<span class="t">' + esc(G.cols[c].label) + '</span>';
+        g.appendChild(h);
+      }
+      // filas
+      for (var r = 0; r < 3; r++) {
+        var rh = document.createElement('div');
+        rh.className = 'hcell';
+        rh.innerHTML = '<span class="t">' + esc(G.rows[r].label) + '</span>';
+        g.appendChild(rh);
+        for (var cc = 0; cc < 3; cc++) {
+          g.appendChild(makeCell(r, cc));
+        }
+      }
+    }
+
+    function makeCell(r, c) {
+      var idx = r * 3 + c;
+      var el = document.createElement('button');
+      el.className = 'cell';
+      el.dataset.idx = idx;
+      el.dataset.r = r; el.dataset.c = c;
+      paintCell(el, idx);
+      el.addEventListener('click', function () { onCellClick(idx, el); });
+      return el;
+    }
+
+    function cellEl(idx) { return $('.cell[data-idx="' + idx + '"]'); }
+
+    function paintCell(el, idx) {
+      var m = board[idx];
+      el.classList.remove('x', 'o', 'taken', 'dead', 'playable');
+      if (m) {
+        el.classList.add('taken', m.toLowerCase());
+        el.innerHTML = '<span class="who">' + m + '</span><span class="pname">' + esc(cellPlayer[idx]) + '</span>';
+      } else {
+        el.innerHTML = '<span class="q">?</span>';
+        if (!hasUnusedSolution(idx)) el.classList.add('dead');
+      }
+    }
+
+    /* ---------- Soluciones por celda ---------- */
+    function solutionsFor(idx) {
+      var r = Math.floor(idx / 3), c = idx % 3;
+      return G.solutions[r][c];
+    }
+    function hasUnusedSolution(idx) {
+      return solutionsFor(idx).some(function (n) { return !used[n]; });
+    }
+    function anyMoveLeft() {
+      for (var i = 0; i < 9; i++) if (!board[i] && hasUnusedSolution(i)) return true;
+      return false;
+    }
+
+    /* ---------- Turnos / estado ---------- */
+    function updateTurn() {
+      $('#teamX').classList.toggle('active', turn === 'X' && !over);
+      $('#teamO').classList.toggle('active', turn === 'O' && !over);
+      var st = $('#status');
+      if (over) return;
+      if (mode === 'cpu' && turn === 'O') { st.innerHTML = '<b>La máquina</b> está pensando…'; return; }
+      st.innerHTML = 'Turno de <b>' + esc(teamName(turn)) + '</b> — elige una casilla';
+    }
+
+    function onCellClick(idx, el) {
+      if (over || busy) return;
+      if (board[idx]) return;
+      if (mode === 'cpu' && turn === 'O') return;
+      if (!hasUnusedSolution(idx)) {
+        flashStatus('Esa casilla ya no tiene respuestas disponibles', true);
+        return;
+      }
+      openModal(idx);
+    }
+
+    /* ---------- Modal ---------- */
+    var suggIdx = -1;
+    function openModal(idx) {
+      activeCell = idx;
+      var r = Math.floor(idx / 3), c = idx % 3;
+      $('#chipRow').textContent = G.rows[r].label;
+      $('#chipCol').textContent = G.cols[c].label;
+      $('#answer').value = '';
+      $('#feedback').textContent = '';
+      $('#feedback').className = 'feedback';
+      $('#hintLine').innerHTML = '<a href="#" id="hintBtn" style="color:var(--muted)">💡 Pista</a>';
+      bindHint();
+      hideSugg();
+      $('#modalBg').classList.add('show');
+      setTimeout(function () { $('#answer').focus(); }, 60);
+    }
+    function closeModal() {
+      $('#modalBg').classList.remove('show');
+      activeCell = -1;
+      hideSugg();
+    }
+
+    var answerEl = $('#answer'), suggEl = $('#sugg');
+    answerEl.addEventListener('input', function () {
+      var list = FGC.suggest(answerEl.value, 8);
+      renderSugg(list);
+    });
+    answerEl.addEventListener('keydown', function (e) {
+      var items = suggEl.querySelectorAll('li');
+      if (e.key === 'ArrowDown' && items.length) { e.preventDefault(); suggIdx = Math.min(suggIdx + 1, items.length - 1); hiSugg(items); }
+      else if (e.key === 'ArrowUp' && items.length) { e.preventDefault(); suggIdx = Math.max(suggIdx - 1, 0); hiSugg(items); }
+      else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (suggIdx >= 0 && items[suggIdx]) { answerEl.value = items[suggIdx].dataset.name; hideSugg(); }
+        else submit();
+      } else if (e.key === 'Escape') { hideSugg(); }
+    });
+    function renderSugg(list) {
+      suggIdx = -1;
+      if (!list.length) { hideSugg(); return; }
+      suggEl.innerHTML = list.map(function (n) { return '<li data-name="' + esc(n) + '">' + esc(n) + '</li>'; }).join('');
+      suggEl.classList.add('show');
+      suggEl.querySelectorAll('li').forEach(function (li) {
+        li.addEventListener('click', function () { answerEl.value = li.dataset.name; hideSugg(); answerEl.focus(); });
+      });
+    }
+    function hiSugg(items) { items.forEach(function (it, i) { it.classList.toggle('hi', i === suggIdx); }); }
+    function hideSugg() { suggEl.classList.remove('show'); suggEl.innerHTML = ''; suggIdx = -1; }
+
+    $('#submitBtn').addEventListener('click', submit);
+    $('#passBtn').addEventListener('click', function () {
+      closeModal();
+      passTurn('Turno rendido.');
+    });
+
+    function bindHint() {
+      $('#hintBtn').addEventListener('click', function (e) {
+        e.preventDefault();
+        var sols = solutionsFor(activeCell).filter(function (n) { return !used[n]; });
+        var n = sols.length;
+        var sample = sols[Math.floor(Math.random() * sols.length)];
+        var masked = sample.split(' ').map(function (w) { return w[0] + '·'.repeat(Math.max(1, w.length - 1)); }).join(' ');
+        $('#hintLine').innerHTML = 'Hay <b>' + n + '</b> respuesta' + (n === 1 ? '' : 's') + ' válida' + (n === 1 ? '' : 's') + '. Una empieza así: <b>' + esc(masked) + '</b>';
+      });
+    }
+
+    function submit() {
+      if (activeCell < 0) return;
+      var idx = activeCell;
+      var r = Math.floor(idx / 3), c = idx % 3;
+      var res = FGC.validateGuess(answerEl.value, G.rowIds[r], G.colIds[c], used);
+      var fb = $('#feedback');
+      if (res.ok) {
+        fb.textContent = '✓ ¡' + res.player + '! Casilla conquistada.';
+        fb.className = 'feedback ok';
+        var placed = res.player;
+        setTimeout(function () { closeModal(); claim(idx, turn, placed); }, 520);
+      } else {
+        if (res.reason === 'used') { fb.textContent = '✗ ' + res.player + ' ya está en el tablero. Prueba otro.'; }
+        else if (res.reason === 'unknown') { fb.textContent = '✗ No reconozco ese nombre. Usa las sugerencias.'; }
+        else if (res.reason === 'empty') { fb.textContent = '✗ Escribe un nombre.'; }
+        else { fb.textContent = '✗ ' + (res.player || 'Ese jugador') + ' no cumple ambas categorías.'; }
+        fb.className = 'feedback err';
+        var mEl = document.querySelector('.modal');
+        mEl.classList.remove('shake'); void mEl.offsetWidth; mEl.classList.add('shake');
+        if (res.reason === 'wrong' || res.reason === 'used') {
+          // fallo real: se pierde el turno
+          setTimeout(function () { closeModal(); passTurn((res.player || 'Ese jugador') + ' no valía. Pierdes el turno.'); }, 900);
+        }
+      }
+    }
+
+    /* ---------- Colocar ficha ---------- */
+    function claim(idx, mark, playerName) {
+      board[idx] = mark;
+      cellPlayer[idx] = playerName;
+      used[playerName] = true;
+      var el = cellEl(idx);
+      paintCell(el, idx);
+      el.classList.add('pop');
+      // repintar casillas muertas
+      refreshDead();
+      var res = FGC.checkWinner(board);
+      if (res && res.winner !== 'draw') return finish(res);
+      if (res && res.winner === 'draw') return finish({ winner: 'draw' });
+      if (!anyMoveLeft()) return finish(resolveByCount());
+      turn = other(turn);
+      updateTurn();
+      maybeAI();
+    }
+
+    function passTurn(msg) {
+      if (over) return;
+      flashStatus(msg, true);
+      refreshDead();
+      if (!anyMoveLeft()) return finish(resolveByCount());
+      turn = other(turn);
+      updateTurn();
+      maybeAI();
+    }
+
+    function refreshDead() {
+      for (var i = 0; i < 9; i++) if (!board[i]) paintCell(cellEl(i), i);
+    }
+
+    function other(m) { return m === 'X' ? 'O' : 'X'; }
+
+    function flashStatus(msg, warn) {
+      var st = $('#status');
+      st.innerHTML = esc(msg);
+      st.style.color = warn ? 'var(--bad)' : '';
+      setTimeout(function () { st.style.color = ''; if (!over) updateTurn(); }, 1400);
+    }
+
+    /* ---------- IA ---------- */
+    function maybeAI() {
+      if (over) return;
+      if (mode !== 'cpu' || turn !== 'O') return;
+      busy = true;
+      updateTurn();
+      var think = 480 + Math.random() * 620;
+      setTimeout(aiPlay, think);
+    }
+    function aiPlay() {
+      if (over) { busy = false; return; }
+      var cfg = FGC.DIFF[level];
+      // elegir celda válida (con respuesta disponible)
+      var idx = FGC.aiChooseCell(board, 'O', cfg.ai);
+      // asegurar que la IA puede responder esa celda; si no, buscar otra jugable
+      if (idx < 0 || board[idx] || !hasUnusedSolution(idx)) {
+        var alt = -1;
+        for (var i = 0; i < 9; i++) if (!board[i] && hasUnusedSolution(i)) { alt = i; break; }
+        idx = alt;
+      }
+      if (idx < 0) { busy = false; return finish(resolveByCount()); }
+      var sols = solutionsFor(idx).filter(function (n) { return !used[n]; });
+      var pick = sols[Math.floor(Math.random() * sols.length)];
+      busy = false;
+      claim(idx, 'O', pick);
+    }
+
+    /* ---------- Resolver por conteo si nadie hizo línea ---------- */
+    function resolveByCount() {
+      var res = FGC.checkWinner(board);
+      if (res) return res;
+      var x = 0, o = 0;
+      board.forEach(function (m) { if (m === 'X') x++; else if (m === 'O') o++; });
+      if (x > o) return { winner: 'X', byCount: true };
+      if (o > x) return { winner: 'O', byCount: true };
+      return { winner: 'draw' };
+    }
+
+    /* ---------- Fin ---------- */
+    function finish(res) {
+      over = true;
+      busy = false;
+      $('#teamX').classList.remove('active');
+      $('#teamO').classList.remove('active');
+      if (res.line) res.line.forEach(function (i) { cellEl(i).classList.add('win'); });
+
+      var kick = $('#endKick'), big = $('#endBig'), msg = $('#endMsg');
+      if (res.winner === 'draw') {
+        kick.textContent = 'Silbato final';
+        big.textContent = 'EMPATE';
+        big.style.background = 'linear-gradient(120deg,var(--muted),var(--ink))';
+        big.style.webkitBackgroundClip = 'text'; big.style.backgroundClip = 'text';
+        msg.textContent = 'Nadie completó una línea. ¡Revancha!';
+        $('#status').innerHTML = '<b>Empate</b>';
+      } else {
+        var winnerName = teamName(res.winner);
+        scores[res.winner]++;
+        $('#score' + res.winner).textContent = scores[res.winner];
+        var human = humanIs(res.winner);
+        kick.textContent = res.byCount ? 'Gana por casillas' : '¡Tres en línea!';
+        big.textContent = (mode === 'cpu' && res.winner === 'O') ? 'GANA LA IA' : '¡GOOOL!';
+        big.style.background = 'linear-gradient(120deg,var(--x),var(--o))';
+        big.style.webkitBackgroundClip = 'text'; big.style.backgroundClip = 'text';
+        msg.textContent = winnerName + ' gana la partida' + (res.byCount ? ' por mayoría de casillas.' : '.');
+        $('#status').innerHTML = '<b>' + esc(winnerName) + '</b> gana';
+        if (mode === 'local' || res.winner === 'X') confetti();
+      }
+      $('#end').classList.add('show');
+    }
+
+    $('#endBtn').addEventListener('click', function () { $('#end').classList.remove('show'); newGrid(); });
+    $('#againBtn').addEventListener('click', function () { $('#end').classList.remove('show'); newGrid(); });
+    $('#menuBtn').addEventListener('click', function () { $('#end').classList.remove('show'); show('screen-menu'); });
+    $('#playBtn').addEventListener('click', startGame);
+    document.querySelector('#modalBg').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+
+    /* ---------- Utilidades ---------- */
+    function esc(s) { return (s + '').replace(/[&<>"']/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]; }); }
+
+    /* ---------- Confeti ---------- */
+    var fx = $('#fx'), ctx = fx.getContext('2d'), parts = [], raf = null;
+    function resizeFx() { fx.width = innerWidth; fx.height = innerHeight; }
+    addEventListener('resize', resizeFx); resizeFx();
+    function confetti() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      fx.classList.add('show');
+      parts = [];
+      var cols = ['#ffce4a', '#4ad0ec', '#5fd873', '#ffffff', '#ff6f6f'];
+      for (var i = 0; i < 140; i++) {
+        parts.push({
+          x: innerWidth / 2 + (Math.random() - .5) * 140,
+          y: innerHeight / 2 - 40,
+          vx: (Math.random() - .5) * 11,
+          vy: -6 - Math.random() * 9,
+          g: .28 + Math.random() * .12,
+          s: 5 + Math.random() * 7,
+          rot: Math.random() * 6.28,
+          vr: (Math.random() - .5) * .3,
+          c: cols[i % cols.length],
+          life: 90 + Math.random() * 50
+        });
+      }
+      if (raf) cancelAnimationFrame(raf);
+      tick();
+    }
+    function tick() {
+      ctx.clearRect(0, 0, fx.width, fx.height);
+      var alive = 0;
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        if (p.life <= 0) continue;
+        alive++;
+        p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life--;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.c;
+        ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * .6); ctx.restore();
+      }
+      if (alive > 0) raf = requestAnimationFrame(tick);
+      else { ctx.clearRect(0, 0, fx.width, fx.height); fx.classList.remove('show'); }
+    }
+
+    /* ---------- Service worker (PWA) ---------- */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('service-worker.js').catch(function () {});
+      });
+    }
+  })();
+  </script>
+</body>
+</html>

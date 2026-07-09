@@ -1,0 +1,464 @@
+/* ============================================================
+   TRES EN RAYA FUTBOLÍSTICO — Núcleo del juego (lógica pura)
+   Funciona en navegador (window.FGC) y en Node (module.exports)
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  /* ---------- Base de datos de jugadores ----------
+     n   = nombre completo
+     nat = nacionalidad (selección)
+     cl  = clubes en los que jugó (partidos oficiales)
+     wc  = ganó la Copa del Mundo
+     ucl = ganó la Champions League / Copa de Europa
+     bdo = ganó el Balón de Oro (France Football)
+     pos = POR (portero) / DEF / MED / DEL
+     Datos de hechos ampliamente reconocidos.
+  */
+  var P = [
+    // --- Argentina ---
+    { n: 'Lionel Messi', nat: 'Argentina', cl: ['Barcelona', 'PSG', 'Inter Miami'], wc: 1, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Diego Maradona', nat: 'Argentina', cl: ['Barcelona', 'Napoli', 'Boca Juniors'], wc: 1, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Ángel Di María', nat: 'Argentina', cl: ['Benfica', 'Real Madrid', 'Manchester United', 'PSG', 'Juventus'], wc: 1, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Sergio Agüero', nat: 'Argentina', cl: ['Atlético Madrid', 'Manchester City', 'Barcelona'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Emiliano Martínez', nat: 'Argentina', cl: ['Arsenal', 'Aston Villa'], wc: 1, ucl: 0, bdo: 0, pos: 'POR' },
+    { n: 'Julián Álvarez', nat: 'Argentina', cl: ['River Plate', 'Manchester City', 'Atlético Madrid'], wc: 1, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Lautaro Martínez', nat: 'Argentina', cl: ['Inter'], wc: 1, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Enzo Fernández', nat: 'Argentina', cl: ['River Plate', 'Benfica', 'Chelsea'], wc: 1, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Alexis Mac Allister', nat: 'Argentina', cl: ['Brighton', 'Liverpool'], wc: 1, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Rodrigo De Paul', nat: 'Argentina', cl: ['Udinese', 'Atlético Madrid'], wc: 1, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Carlos Tevez', nat: 'Argentina', cl: ['Boca Juniors', 'Manchester United', 'Manchester City', 'Juventus'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Javier Mascherano', nat: 'Argentina', cl: ['Liverpool', 'Barcelona'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Gabriel Batistuta', nat: 'Argentina', cl: ['Fiorentina', 'Roma'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Juan Román Riquelme', nat: 'Argentina', cl: ['Boca Juniors', 'Barcelona', 'Villarreal'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Hernán Crespo', nat: 'Argentina', cl: ['Parma', 'Lazio', 'Inter', 'Chelsea', 'AC Milan'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+
+    // --- Brasil ---
+    { n: 'Pelé', nat: 'Brasil', cl: ['Santos'], wc: 1, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Ronaldinho', nat: 'Brasil', cl: ['PSG', 'Barcelona', 'AC Milan'], wc: 1, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Ronaldo Nazário', nat: 'Brasil', cl: ['Barcelona', 'Inter', 'Real Madrid', 'AC Milan'], wc: 1, ucl: 0, bdo: 1, pos: 'DEL' },
+    { n: 'Kaká', nat: 'Brasil', cl: ['AC Milan', 'Real Madrid'], wc: 1, ucl: 1, bdo: 1, pos: 'MED' },
+    { n: 'Rivaldo', nat: 'Brasil', cl: ['Barcelona', 'AC Milan'], wc: 1, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Neymar', nat: 'Brasil', cl: ['Santos', 'Barcelona', 'PSG'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Cafú', nat: 'Brasil', cl: ['Roma', 'AC Milan'], wc: 1, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Roberto Carlos', nat: 'Brasil', cl: ['Inter', 'Real Madrid'], wc: 1, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Dida', nat: 'Brasil', cl: ['AC Milan'], wc: 1, ucl: 1, bdo: 0, pos: 'POR' },
+    { n: 'Thiago Silva', nat: 'Brasil', cl: ['AC Milan', 'PSG', 'Chelsea'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Marcelo', nat: 'Brasil', cl: ['Real Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Casemiro', nat: 'Brasil', cl: ['Real Madrid', 'Manchester United'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Alisson', nat: 'Brasil', cl: ['Roma', 'Liverpool'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' },
+    { n: 'Ederson', nat: 'Brasil', cl: ['Benfica', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' },
+    { n: 'Dani Alves', nat: 'Brasil', cl: ['Sevilla', 'Barcelona', 'Juventus', 'PSG'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Vinícius Júnior', nat: 'Brasil', cl: ['Real Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+
+    // --- Francia ---
+    { n: 'Zinedine Zidane', nat: 'Francia', cl: ['Juventus', 'Real Madrid'], wc: 1, ucl: 1, bdo: 1, pos: 'MED' },
+    { n: 'Thierry Henry', nat: 'Francia', cl: ['Monaco', 'Arsenal', 'Barcelona'], wc: 1, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Kylian Mbappé', nat: 'Francia', cl: ['Monaco', 'PSG', 'Real Madrid'], wc: 1, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Antoine Griezmann', nat: 'Francia', cl: ['Real Sociedad', 'Atlético Madrid', 'Barcelona'], wc: 1, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Paul Pogba', nat: 'Francia', cl: ['Juventus', 'Manchester United'], wc: 1, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: "N'Golo Kanté", nat: 'Francia', cl: ['Leicester', 'Chelsea'], wc: 1, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Karim Benzema', nat: 'Francia', cl: ['Lyon', 'Real Madrid'], wc: 0, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Hugo Lloris', nat: 'Francia', cl: ['Lyon', 'Tottenham'], wc: 1, ucl: 0, bdo: 0, pos: 'POR' },
+    { n: 'Raphaël Varane', nat: 'Francia', cl: ['Real Madrid', 'Manchester United'], wc: 1, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Didier Deschamps', nat: 'Francia', cl: ['Marseille', 'Juventus', 'Chelsea'], wc: 1, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Marcel Desailly', nat: 'Francia', cl: ['Marseille', 'AC Milan', 'Chelsea'], wc: 1, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Franck Ribéry', nat: 'Francia', cl: ['Bayern Munich'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Patrick Vieira', nat: 'Francia', cl: ['Arsenal', 'Juventus', 'Inter', 'Manchester City'], wc: 1, ucl: 0, bdo: 0, pos: 'MED' },
+
+    // --- España ---
+    { n: 'Andrés Iniesta', nat: 'España', cl: ['Barcelona'], wc: 1, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Xavi Hernández', nat: 'España', cl: ['Barcelona'], wc: 1, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Sergio Ramos', nat: 'España', cl: ['Sevilla', 'Real Madrid', 'PSG'], wc: 1, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Gerard Piqué', nat: 'España', cl: ['Manchester United', 'Barcelona'], wc: 1, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Iker Casillas', nat: 'España', cl: ['Real Madrid', 'Porto'], wc: 1, ucl: 1, bdo: 0, pos: 'POR' },
+    { n: 'Carles Puyol', nat: 'España', cl: ['Barcelona'], wc: 1, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Sergio Busquets', nat: 'España', cl: ['Barcelona', 'Inter Miami'], wc: 1, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'David Villa', nat: 'España', cl: ['Valencia', 'Barcelona', 'Atlético Madrid'], wc: 1, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Fernando Torres', nat: 'España', cl: ['Atlético Madrid', 'Liverpool', 'Chelsea'], wc: 1, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'David Silva', nat: 'España', cl: ['Valencia', 'Manchester City'], wc: 1, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Xabi Alonso', nat: 'España', cl: ['Real Sociedad', 'Liverpool', 'Real Madrid', 'Bayern Munich'], wc: 1, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Cesc Fàbregas', nat: 'España', cl: ['Arsenal', 'Barcelona', 'Chelsea'], wc: 1, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Rodri', nat: 'España', cl: ['Atlético Madrid', 'Manchester City'], wc: 0, ucl: 1, bdo: 1, pos: 'MED' },
+
+    // --- Portugal ---
+    { n: 'Cristiano Ronaldo', nat: 'Portugal', cl: ['Manchester United', 'Real Madrid', 'Juventus'], wc: 0, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Luís Figo', nat: 'Portugal', cl: ['Barcelona', 'Real Madrid', 'Inter'], wc: 0, ucl: 0, bdo: 1, pos: 'MED' },
+    { n: 'Deco', nat: 'Portugal', cl: ['Porto', 'Barcelona', 'Chelsea'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Rui Costa', nat: 'Portugal', cl: ['Fiorentina', 'AC Milan'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Pepe', nat: 'Portugal', cl: ['Porto', 'Real Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Bernardo Silva', nat: 'Portugal', cl: ['Monaco', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Rúben Dias', nat: 'Portugal', cl: ['Benfica', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Bruno Fernandes', nat: 'Portugal', cl: ['Sporting', 'Manchester United'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'João Félix', nat: 'Portugal', cl: ['Benfica', 'Atlético Madrid', 'Chelsea', 'Barcelona'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+
+    // --- Alemania ---
+    { n: 'Toni Kroos', nat: 'Alemania', cl: ['Bayern Munich', 'Real Madrid'], wc: 1, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Manuel Neuer', nat: 'Alemania', cl: ['Schalke 04', 'Bayern Munich'], wc: 1, ucl: 1, bdo: 0, pos: 'POR' },
+    { n: 'Thomas Müller', nat: 'Alemania', cl: ['Bayern Munich'], wc: 1, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Philipp Lahm', nat: 'Alemania', cl: ['Bayern Munich'], wc: 1, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Bastian Schweinsteiger', nat: 'Alemania', cl: ['Bayern Munich', 'Manchester United'], wc: 1, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Miroslav Klose', nat: 'Alemania', cl: ['Werder Bremen', 'Bayern Munich', 'Lazio'], wc: 1, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Mesut Özil', nat: 'Alemania', cl: ['Werder Bremen', 'Real Madrid', 'Arsenal'], wc: 1, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Oliver Kahn', nat: 'Alemania', cl: ['Bayern Munich'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' },
+    { n: 'Michael Ballack', nat: 'Alemania', cl: ['Bayern Munich', 'Chelsea'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+
+    // --- Italia ---
+    { n: 'Gianluigi Buffon', nat: 'Italia', cl: ['Parma', 'Juventus', 'PSG'], wc: 1, ucl: 0, bdo: 0, pos: 'POR' },
+    { n: 'Andrea Pirlo', nat: 'Italia', cl: ['AC Milan', 'Juventus'], wc: 1, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Paolo Maldini', nat: 'Italia', cl: ['AC Milan'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Francesco Totti', nat: 'Italia', cl: ['Roma'], wc: 1, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Alessandro Del Piero', nat: 'Italia', cl: ['Juventus'], wc: 1, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Fabio Cannavaro', nat: 'Italia', cl: ['Parma', 'Inter', 'Juventus', 'Real Madrid'], wc: 1, ucl: 0, bdo: 1, pos: 'DEF' },
+    { n: 'Alessandro Nesta', nat: 'Italia', cl: ['Lazio', 'AC Milan'], wc: 1, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Gennaro Gattuso', nat: 'Italia', cl: ['AC Milan'], wc: 1, ucl: 1, bdo: 0, pos: 'MED' },
+
+    // --- Países Bajos ---
+    { n: 'Marco van Basten', nat: 'Países Bajos', cl: ['Ajax', 'AC Milan'], wc: 0, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Ruud Gullit', nat: 'Países Bajos', cl: ['AC Milan', 'Chelsea'], wc: 0, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Dennis Bergkamp', nat: 'Países Bajos', cl: ['Ajax', 'Inter', 'Arsenal'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Arjen Robben', nat: 'Países Bajos', cl: ['Chelsea', 'Real Madrid', 'Bayern Munich'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Wesley Sneijder', nat: 'Países Bajos', cl: ['Ajax', 'Real Madrid', 'Inter'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Clarence Seedorf', nat: 'Países Bajos', cl: ['Ajax', 'Real Madrid', 'Inter', 'AC Milan'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Ruud van Nistelrooy', nat: 'Países Bajos', cl: ['PSV', 'Manchester United', 'Real Madrid'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Virgil van Dijk', nat: 'Países Bajos', cl: ['Southampton', 'Liverpool'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+
+    // --- Inglaterra ---
+    { n: 'Wayne Rooney', nat: 'Inglaterra', cl: ['Everton', 'Manchester United'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'David Beckham', nat: 'Inglaterra', cl: ['Manchester United', 'Real Madrid', 'AC Milan', 'PSG'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Frank Lampard', nat: 'Inglaterra', cl: ['Chelsea', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Steven Gerrard', nat: 'Inglaterra', cl: ['Liverpool'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'John Terry', nat: 'Inglaterra', cl: ['Chelsea'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Rio Ferdinand', nat: 'Inglaterra', cl: ['Leeds', 'Manchester United'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Paul Scholes', nat: 'Inglaterra', cl: ['Manchester United'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Michael Owen', nat: 'Inglaterra', cl: ['Liverpool', 'Real Madrid', 'Manchester United'], wc: 0, ucl: 0, bdo: 1, pos: 'DEL' },
+    { n: 'Harry Kane', nat: 'Inglaterra', cl: ['Tottenham', 'Bayern Munich'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+
+    // --- Uruguay ---
+    { n: 'Luis Suárez', nat: 'Uruguay', cl: ['Ajax', 'Liverpool', 'Barcelona', 'Atlético Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Edinson Cavani', nat: 'Uruguay', cl: ['Napoli', 'PSG', 'Manchester United'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Diego Forlán', nat: 'Uruguay', cl: ['Manchester United', 'Villarreal', 'Atlético Madrid'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+
+    // --- Otros ---
+    { n: 'Robert Lewandowski', nat: 'Polonia', cl: ['Borussia Dortmund', 'Bayern Munich', 'Barcelona'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Erling Haaland', nat: 'Noruega', cl: ['Borussia Dortmund', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Zlatan Ibrahimović', nat: 'Suecia', cl: ['Ajax', 'Juventus', 'Inter', 'Barcelona', 'AC Milan', 'PSG', 'Manchester United'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Kevin De Bruyne', nat: 'Bélgica', cl: ['Chelsea', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Thibaut Courtois', nat: 'Bélgica', cl: ['Atlético Madrid', 'Chelsea', 'Real Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' },
+    { n: 'Eden Hazard', nat: 'Bélgica', cl: ['Lille', 'Chelsea', 'Real Madrid'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Luka Modrić', nat: 'Croacia', cl: ['Tottenham', 'Real Madrid'], wc: 0, ucl: 1, bdo: 1, pos: 'MED' },
+    { n: 'Ivan Rakitić', nat: 'Croacia', cl: ['Sevilla', 'Barcelona'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Mario Mandžukić', nat: 'Croacia', cl: ['Bayern Munich', 'Atlético Madrid', 'Juventus'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Mohamed Salah', nat: 'Egipto', cl: ['Chelsea', 'Roma', 'Liverpool'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Sadio Mané', nat: 'Senegal', cl: ['Southampton', 'Liverpool', 'Bayern Munich'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: "Samuel Eto'o", nat: 'Camerún', cl: ['Real Madrid', 'Mallorca', 'Barcelona', 'Inter', 'Chelsea'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Didier Drogba', nat: 'Costa de Marfil', cl: ['Marseille', 'Chelsea'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Yaya Touré', nat: 'Costa de Marfil', cl: ['Barcelona', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'George Weah', nat: 'Liberia', cl: ['Monaco', 'PSG', 'AC Milan', 'Chelsea'], wc: 0, ucl: 0, bdo: 1, pos: 'DEL' },
+    { n: 'Gareth Bale', nat: 'Gales', cl: ['Tottenham', 'Real Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Ryan Giggs', nat: 'Gales', cl: ['Manchester United'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'George Best', nat: 'Irlanda del Norte', cl: ['Manchester United'], wc: 0, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Peter Schmeichel', nat: 'Dinamarca', cl: ['Manchester United', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' }
+  ];
+
+  /* ---------- Alias manuales (además del apellido y nombre completo) ---------- */
+  var ALIAS = {
+    'Lionel Messi': ['messi', 'leo messi', 'la pulga'],
+    'Cristiano Ronaldo': ['cristiano', 'cr7', 'ronaldo cristiano'],
+    'Ronaldo Nazário': ['ronaldo', 'ronaldo brasileño', 'el fenomeno', 'r9'],
+    'Diego Maradona': ['maradona', 'el diego', 'pelusa'],
+    'Zlatan Ibrahimović': ['zlatan', 'ibra'],
+    'Kylian Mbappé': ['mbappe'],
+    'Karim Benzema': ['benzema'],
+    'Luka Modrić': ['modric'],
+    'Robert Lewandowski': ['lewandowski', 'lewa'],
+    'Andrés Iniesta': ['iniesta'],
+    'Xavi Hernández': ['xavi'],
+    'Sergio Agüero': ['aguero', 'kun aguero', 'el kun'],
+    'Ángel Di María': ['di maria', 'fideo'],
+    "N'Golo Kanté": ['kante'],
+    'Ronaldinho': ['ronaldinho', 'dinho'],
+    "Samuel Eto'o": ['etoo', 'eto o']
+  };
+
+  /* ---------- Normalización ---------- */
+  function normalize(s) {
+    return (s || '')
+      .toString()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '') // quitar acentos
+      .replace(/[^a-z0-9\s]/g, ' ')    // quitar puntuación
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // Índice de búsqueda: para cada jugador, un set de claves normalizadas
+  P.forEach(function (p) {
+    var keys = {};
+    keys[normalize(p.n)] = 1;
+    // apellido (último token)
+    var toks = normalize(p.n).split(' ');
+    if (toks.length > 1) keys[toks[toks.length - 1]] = 1;
+    (ALIAS[p.n] || []).forEach(function (a) { keys[normalize(a)] = 1; });
+    p._keys = keys;
+  });
+
+  /* ---------- Categorías ---------- */
+  // tipo: 'nat' | 'club' | 'ach' | 'pos'
+  function cat(id, label, type, test, tier) {
+    return { id: id, label: label, type: type, test: test, tier: tier || 1 };
+  }
+
+  var NAT = ['Argentina', 'Brasil', 'Francia', 'España', 'Portugal', 'Alemania', 'Italia', 'Inglaterra', 'Países Bajos', 'Uruguay', 'Bélgica', 'Croacia'];
+  var CLUBS = ['Real Madrid', 'Barcelona', 'Manchester United', 'Bayern Munich', 'Juventus', 'Liverpool', 'Chelsea', 'PSG', 'AC Milan', 'Inter', 'Manchester City', 'Atlético Madrid', 'Arsenal', 'Ajax', 'Tottenham', 'Monaco'];
+
+  var CATS = [];
+  NAT.forEach(function (name) {
+    var tier = ['Argentina', 'Brasil', 'Francia', 'España'].indexOf(name) >= 0 ? 1 : (['Portugal', 'Alemania', 'Italia', 'Inglaterra'].indexOf(name) >= 0 ? 2 : 3);
+    CATS.push(cat('nat_' + name, name, 'nat', (function (nm) { return function (p) { return p.nat === nm; }; })(name), tier));
+  });
+  CLUBS.forEach(function (c) {
+    var tier = ['Real Madrid', 'Barcelona', 'Manchester United', 'Bayern Munich', 'Juventus', 'Liverpool'].indexOf(c) >= 0 ? 1 : 2;
+    CATS.push(cat('club_' + c, c, 'club', (function (cl) { return function (p) { return p.cl.indexOf(cl) >= 0; }; })(c), tier));
+  });
+  CATS.push(cat('ach_wc', 'Ganó el Mundial', 'ach', function (p) { return !!p.wc; }, 1));
+  CATS.push(cat('ach_ucl', 'Ganó la Champions', 'ach', function (p) { return !!p.ucl; }, 1));
+  CATS.push(cat('ach_bdo', 'Ganó el Balón de Oro', 'ach', function (p) { return !!p.bdo; }, 2));
+  CATS.push(cat('pos_POR', 'Portero', 'pos', function (p) { return p.pos === 'POR'; }, 2));
+  CATS.push(cat('pos_DEF', 'Defensa', 'pos', function (p) { return p.pos === 'DEF'; }, 2));
+  CATS.push(cat('pos_DEL', 'Delantero', 'pos', function (p) { return p.pos === 'DEL'; }, 3));
+
+  var CAT_BY_ID = {};
+  CATS.forEach(function (c) { CAT_BY_ID[c.id] = c; });
+
+  /* ---------- Solucionadores ---------- */
+  function solvers(rowCat, colCat) {
+    var out = [];
+    for (var i = 0; i < P.length; i++) {
+      if (rowCat.test(P[i]) && colCat.test(P[i])) out.push(P[i].n);
+    }
+    return out;
+  }
+
+  // ¿pueden dos categorías coexistir en un eje razonable? (evita nat×nat, pos×pos, mismo id)
+  function compatibleAxisPair() { return true; }
+
+  var DIFF = {
+    facil:    { min: 5, poolTier: 1, ai: 'random' },
+    medio:    { min: 3, poolTier: 2, ai: 'greedy' },
+    dificil:  { min: 2, poolTier: 3, ai: 'hard' },
+    ultimate: { min: 1, poolTier: 3, ai: 'perfect' }
+  };
+
+  function pool(maxTier) {
+    return CATS.filter(function (c) { return c.tier <= maxTier; });
+  }
+
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // Genera una cuadrícula 3x3 resoluble para la dificultad dada
+  function generateGrid(difficulty) {
+    var cfg = DIFF[difficulty] || DIFF.facil;
+    var candidates = pool(cfg.poolTier);
+    var minReq = cfg.min;
+
+    for (var relax = 0; relax < 4; relax++) {
+      var need = Math.max(1, minReq - relax);
+      for (var attempt = 0; attempt < 4000; attempt++) {
+        var pick = shuffle(candidates);
+        var rows = pick.slice(0, 3);
+        var cols = pick.slice(3, 6);
+        // evitar dos nacionalidades / posiciones cruzadas siempre vacías se resuelve por 'need'
+        var ok = true;
+        var sol = [[], [], []];
+        for (var r = 0; r < 3 && ok; r++) {
+          for (var c = 0; c < 3 && ok; c++) {
+            var s = solvers(rows[r], cols[c]);
+            if (s.length < need) { ok = false; break; }
+            sol[r][c] = s;
+          }
+        }
+        if (ok) {
+          return {
+            rows: rows.map(catPublic),
+            cols: cols.map(catPublic),
+            rowIds: rows.map(function (x) { return x.id; }),
+            colIds: cols.map(function (x) { return x.id; }),
+            solutions: sol,
+            difficulty: difficulty
+          };
+        }
+      }
+    }
+    return null; // no debería ocurrir
+  }
+
+  function catPublic(c) { return { id: c.id, label: c.label, type: c.type }; }
+
+  /* ---------- Validación de una respuesta ---------- */
+  // Devuelve { ok, player } — busca cualquier jugador que coincida con el texto
+  // y que además satisfaga ambas categorías de la celda.
+  function validateGuess(text, rowCatId, colCatId, usedNames) {
+    var q = normalize(text);
+    if (!q) return { ok: false, reason: 'empty' };
+    var rc = CAT_BY_ID[rowCatId], cc = CAT_BY_ID[colCatId];
+    var matches = P.filter(function (p) { return p._keys[q]; });
+    if (matches.length === 0) {
+      // intento por "empieza por" para tolerar autocompletado parcial del apellido
+      matches = P.filter(function (p) {
+        return Object.keys(p._keys).some(function (k) { return k === q; });
+      });
+    }
+    if (matches.length === 0) return { ok: false, reason: 'unknown' };
+
+    var used = usedNames || {};
+    // ¿alguno satisface ambas categorías y no está usado?
+    var valid = matches.filter(function (p) { return rc.test(p) && cc.test(p) && !used[p.n]; });
+    if (valid.length > 0) return { ok: true, player: valid[0].n };
+
+    // coincide un jugador pero no cumple
+    var already = matches.filter(function (p) { return used[p.n]; });
+    if (already.length && already.length === matches.length) {
+      return { ok: false, reason: 'used', player: already[0].n };
+    }
+    return { ok: false, reason: 'wrong', player: matches[0].n };
+  }
+
+  // Sugerencias de autocompletado (nombres completos que coinciden con el prefijo)
+  function suggest(text, limit) {
+    var q = normalize(text);
+    if (!q) return [];
+    var starts = [], contains = [];
+    P.forEach(function (p) {
+      var nn = normalize(p.n);
+      var toks = nn.split(' ');
+      var last = toks[toks.length - 1];
+      if (nn.indexOf(q) === 0 || last.indexOf(q) === 0 || (p._keys[q])) starts.push(p.n);
+      else if (nn.indexOf(q) >= 0) contains.push(p.n);
+    });
+    return starts.concat(contains).slice(0, limit || 8);
+  }
+
+  /* ---------- Tic-tac-toe ---------- */
+  var LINES = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]
+  ];
+
+  function checkWinner(board) {
+    for (var i = 0; i < LINES.length; i++) {
+      var l = LINES[i];
+      if (board[l[0]] && board[l[0]] === board[l[1]] && board[l[1]] === board[l[2]]) {
+        return { winner: board[l[0]], line: l };
+      }
+    }
+    for (var k = 0; k < 9; k++) if (!board[k]) return null;
+    return { winner: 'draw', line: null };
+  }
+
+  /* ---------- IA de selección de celda ---------- */
+  function emptyCells(board) {
+    var e = [];
+    for (var i = 0; i < 9; i++) if (!board[i]) e.push(i);
+    return e;
+  }
+
+  function minimax(board, me, cur, depth) {
+    var res = checkWinner(board);
+    if (res) {
+      if (res.winner === me) return { score: 10 - depth };
+      if (res.winner === 'draw') return { score: 0 };
+      return { score: depth - 10 };
+    }
+    var empties = emptyCells(board);
+    var best = null;
+    for (var i = 0; i < empties.length; i++) {
+      var idx = empties[i];
+      board[idx] = cur;
+      var sub = minimax(board, me, cur === 'X' ? 'O' : 'X', depth + 1);
+      board[idx] = '';
+      var s = sub.score;
+      if (best === null ||
+          (cur === me && s > best.score) ||
+          (cur !== me && s < best.score)) {
+        best = { score: s, idx: idx };
+      }
+    }
+    return best;
+  }
+
+  // Elige celda para la IA. mark = ficha de la IA, opp = rival
+  function aiChooseCell(board, mark, level) {
+    var empties = emptyCells(board);
+    if (empties.length === 0) return -1;
+    var opp = mark === 'X' ? 'O' : 'X';
+
+    function winningMove(who) {
+      for (var i = 0; i < empties.length; i++) {
+        var b = board.slice();
+        b[empties[i]] = who;
+        var r = checkWinner(b);
+        if (r && r.winner === who) return empties[i];
+      }
+      return -1;
+    }
+
+    if (level === 'random') {
+      // a veces gana si es obvio, si no aleatorio
+      if (Math.random() < 0.25) { var w0 = winningMove(mark); if (w0 >= 0) return w0; }
+      return empties[Math.floor(Math.random() * empties.length)];
+    }
+    if (level === 'greedy') {
+      var w = winningMove(mark); if (w >= 0) return w;
+      if (Math.random() < 0.75) { var bl = winningMove(opp); if (bl >= 0) return bl; }
+      // centro, esquinas, resto
+      return preferCells(empties);
+    }
+    if (level === 'hard') {
+      var w2 = winningMove(mark); if (w2 >= 0) return w2;
+      var bl2 = winningMove(opp); if (bl2 >= 0) return bl2;
+      if (Math.random() < 0.7) return minimaxCell(board, mark);
+      return preferCells(empties);
+    }
+    // perfect
+    return minimaxCell(board, mark);
+  }
+
+  function preferCells(empties) {
+    var order = [4, 0, 2, 6, 8, 1, 3, 5, 7];
+    for (var i = 0; i < order.length; i++) if (empties.indexOf(order[i]) >= 0) return order[i];
+    return empties[0];
+  }
+
+  function minimaxCell(board, mark) {
+    var b = board.slice();
+    var best = minimax(b, mark, mark, 0);
+    return (best && best.idx != null) ? best.idx : preferCells(emptyCells(board));
+  }
+
+  var API = {
+    players: P,
+    categories: CATS,
+    normalize: normalize,
+    generateGrid: generateGrid,
+    validateGuess: validateGuess,
+    suggest: suggest,
+    checkWinner: checkWinner,
+    aiChooseCell: aiChooseCell,
+    solvers: solvers,
+    DIFF: DIFF,
+    catById: function (id) { return CAT_BY_ID[id]; }
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+  root.FGC = API;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
