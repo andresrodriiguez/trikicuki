@@ -1,14 +1,14 @@
 /* ============================================================
-   CONFIGURACIÓN DE FIREBASE (para el modo online)
-   Pega aquí los datos de tu proyecto de Firebase.
+   CONFIGURACIÓN DE FIREBASE (modo online de TRIKICUKI)
    Estos valores son PÚBLICOS por diseño (la seguridad se controla
    con las reglas de la Realtime Database), así que es seguro subirlos.
-   Mientras tenga los "PEGA_AQUI", el modo online mostrará un aviso.
    ============================================================ */
 window.FIREBASE_CONFIG = {
-  apiKey: "PEGA_AQUI_TU_API_KEY",
-  authDomain: "PEGA_AQUI.firebaseapp.com",
-  databaseURL: "https://PEGA_AQUI-default-rtdb.firebaseio.com",
-  projectId: "PEGA_AQUI",
-  appId: "PEGA_AQUI"
+  apiKey: "AIzaSyCJk8FO8KLSprl5L4dSecMMRDpr-exGdNA",
+  authDomain: "trikicuki-e3de2.firebaseapp.com",
+  databaseURL: "https://trikicuki-e3de2-default-rtdb.firebaseio.com",
+  projectId: "trikicuki-e3de2",
+  storageBucket: "trikicuki-e3de2.firebasestorage.app",
+  messagingSenderId: "546898138542",
+  appId: "1:546898138542:web:890841f5f84709d4a1e43f"
 };
