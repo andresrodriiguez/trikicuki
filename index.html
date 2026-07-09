@@ -363,8 +363,6 @@
       background: linear-gradient(120deg, var(--x), var(--o)); color: #06130d; border: none; font-weight: 900;
       font-family: var(--f-display); text-transform: uppercase; letter-spacing: .03em;
     }
-    .hint-line { text-align: center; font-size: 12.5px; color: var(--muted); margin-top: 10px; min-height: 16px; }
-    .hint-line b { color: var(--ink); }
 
     /* ============ OVERLAY FIN ============ */
     .end {
@@ -407,7 +405,10 @@
           <div class="sub">Tres en raya futbolístico</div>
         </div>
       </div>
-      <button class="icon-btn" id="themeBtn" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+      <div style="display:flex; gap:8px;">
+        <button class="icon-btn" id="soundBtn" title="Sonido" aria-label="Activar o silenciar sonido" aria-pressed="true">🔊</button>
+        <button class="icon-btn" id="themeBtn" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+      </div>
     </header>
 
     <!-- ======= MENÚ ======= -->
@@ -516,7 +517,6 @@
         <button class="btn ghost" id="passBtn">Rendir turno</button>
         <button class="btn primary" id="submitBtn">Confirmar</button>
       </div>
-      <div class="hint-line" id="hintLine"><a href="#" id="hintBtn" style="color:var(--muted)">💡 Pista</a></div>
     </div>
   </div>
 
@@ -547,6 +547,37 @@
       document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
     });
 
+    /* ---------- Sonido (Web Audio, sintetizado, sin archivos) ---------- */
+    var AC = null, soundOn = true;
+    function ensureAudio() {
+      if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+      if (AC && AC.state === 'suspended') { try { AC.resume(); } catch (e) {} }
+    }
+    function tone(freq, dur, type, vol, when) {
+      if (!soundOn || !AC) return;
+      var t = AC.currentTime + (when || 0);
+      var o = AC.createOscillator(), g = AC.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      o.connect(g); g.connect(AC.destination);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol || 0.14, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.start(t); o.stop(t + dur + 0.03);
+    }
+    var sfx = {
+      place: function () { tone(587, 0.10, 'triangle', 0.16); tone(880, 0.12, 'triangle', 0.13, 0.06); },
+      bad:   function () { tone(196, 0.18, 'sawtooth', 0.12); tone(146, 0.24, 'sawtooth', 0.12, 0.05); },
+      win:   function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.16, 'triangle', 0.17, i * 0.11); }); },
+      tick:  function () { tone(1200, 0.04, 'square', 0.05); }
+    };
+    var soundBtn = $('#soundBtn');
+    soundBtn.addEventListener('click', function () {
+      soundOn = !soundOn;
+      soundBtn.textContent = soundOn ? '🔊' : '🔇';
+      soundBtn.setAttribute('aria-pressed', soundOn);
+      if (soundOn) { ensureAudio(); tone(660, 0.08, 'sine', 0.1); }
+    });
+
     /* ---------- Selección de menú ---------- */
     var mode = 'cpu', level = 'facil';
     document.querySelectorAll('#modeSeg .opt').forEach(function (b) {
@@ -559,11 +590,16 @@
       b.addEventListener('click', function () {
         level = b.dataset.lvl;
         document.querySelectorAll('#lvlSeg .lvl').forEach(function (o) { o.setAttribute('aria-pressed', o === b); });
+        updateTimeLabel();  // Ultimate usa 45 s
       });
     });
 
-    // Ajustes: formato (mejor de 3 / única) y cronómetro (60 s / sin límite)
+    // Ajustes: formato (mejor de 3 / única) y cronómetro (60 s · 45 s en Ultimate / sin límite)
     var bestOf = true, timerEnabled = true;
+    function levelSeconds() { return (FGC.DIFF[level] && FGC.DIFF[level].seconds) || 60; }
+    function updateTimeLabel() {
+      $('#timeV').textContent = timerEnabled ? (levelSeconds() + ' segundos') : 'Sin límite';
+    }
     $('#fmtBtn').addEventListener('click', function () {
       bestOf = !bestOf;
       this.setAttribute('aria-pressed', bestOf);
@@ -572,8 +608,9 @@
     $('#timeBtn').addEventListener('click', function () {
       timerEnabled = !timerEnabled;
       this.setAttribute('aria-pressed', timerEnabled);
-      $('#timeV').textContent = timerEnabled ? '60 segundos' : 'Sin límite';
+      updateTimeLabel();
     });
+    updateTimeLabel();
 
     /* ---------- Estado de partida ---------- */
     var G = null;                 // grid actual
@@ -607,7 +644,9 @@
 
     /* ---------- Iniciar ---------- */
     function startGame() {
+      ensureAudio();
       autoMode = FGC.DIFF[level].autocomplete || 'full';
+      TURN_SECONDS = levelSeconds();
       scores = { X: 0, O: 0 };
       matchOver = false;
       $('#nameX').textContent = teamName('X');
@@ -742,6 +781,7 @@
 
     function onCellClick(idx, el) {
       if (over || busy) return;
+      ensureAudio();
       if (board[idx]) return;
       if (mode === 'cpu' && turn === 'O') return;
       if (!hasUnusedSolution(idx)) {
@@ -762,8 +802,6 @@
       $('#answer').placeholder = autoMode === 'none' ? 'Escribe el nombre completo…' : 'Ej. Messi…';
       $('#feedback').textContent = '';
       $('#feedback').className = 'feedback';
-      $('#hintLine').innerHTML = '<a href="#" id="hintBtn" style="color:var(--muted)">💡 Pista</a>';
-      bindHint();
       hideSugg();
       $('#modalBg').classList.add('show');
       setTimeout(function () { $('#answer').focus(); }, 60);
@@ -810,22 +848,6 @@
       passTurn('Turno rendido.');
     });
 
-    function bindHint() {
-      $('#hintBtn').addEventListener('click', function (e) {
-        e.preventDefault();
-        var sols = solutionsFor(activeCell).filter(function (n) { return !used[n]; });
-        var n = sols.length;
-        var txt = 'Hay <b>' + n + '</b> respuesta' + (n === 1 ? '' : 's') + ' posible' + (n === 1 ? '' : 's') + '.';
-        // En niveles altos la pista es más tacaña: solo revela las iniciales en Fácil.
-        if (autoMode === 'full' && n > 0) {
-          var sample = sols[Math.floor(Math.random() * sols.length)];
-          var masked = sample.split(' ').map(function (w) { return w[0] + '·'.repeat(Math.max(1, w.length - 1)); }).join(' ');
-          txt += ' Una empieza así: <b>' + esc(masked) + '</b>';
-        }
-        $('#hintLine').innerHTML = txt;
-      });
-    }
-
     function submit() {
       if (activeCell < 0) return;
       var idx = activeCell;
@@ -844,6 +866,7 @@
         else if (res.reason === 'empty') { fb.textContent = '✗ Escribe un nombre.'; }
         else { fb.textContent = '✗ ' + (res.player || 'Ese jugador') + ' no cumple ambas categorías.'; }
         fb.className = 'feedback err';
+        sfx.bad();
         var mEl = document.querySelector('.modal');
         mEl.classList.remove('shake'); void mEl.offsetWidth; mEl.classList.add('shake');
         if (res.reason === 'wrong' || res.reason === 'used') {
@@ -863,6 +886,7 @@
       var el = cellEl(idx);
       paintCell(el, idx);
       el.classList.add('pop');
+      sfx.place();
       // repintar casillas muertas
       refreshDead();
       var res = FGC.checkWinner(board);
@@ -913,6 +937,7 @@
       var fill = $('#timerFill'), num = $('#timerNum');
       fill.style.width = Math.max(0, timeLeft / TURN_SECONDS * 100) + '%';
       num.textContent = Math.max(0, timeLeft);
+      if (timeLeft <= 5 && timeLeft > 0) sfx.tick();
       var warn = timeLeft <= 10, danger = timeLeft <= 5;
       fill.classList.toggle('warn', warn && !danger);
       fill.classList.toggle('danger', danger);
@@ -920,6 +945,7 @@
     }
     function onTimeUp() {
       if (over) return;
+      sfx.bad();
       if ($('#modalBg').classList.contains('show')) closeModal();
       passTurn('¡Se acabó el tiempo! Turno perdido.');
     }
@@ -984,6 +1010,7 @@
         msg.textContent = bestOf ? ('Ronda ' + currentRound() + ' empatada. Se juega de nuevo. Marcador ' + scores.X + '–' + scores.O + '.') : 'Nadie completó una línea.';
         btn.textContent = bestOf ? 'Repetir ronda ▶' : 'Jugar otra vez';
         $('#status').innerHTML = '<b>Empate</b>';
+        tone(392, 0.16, 'sine', 0.12); tone(392, 0.16, 'sine', 0.1, 0.14);
       } else {
         var w = res.winner, winnerName = teamName(w);
         scores[w]++;
@@ -1000,13 +1027,13 @@
             ? (winnerName + ' gana la serie ' + scores[w] + '–' + scores[other(w)] + '.')
             : (winnerName + ' gana' + (res.byCount ? ' por mayoría de casillas.' : '.'));
           btn.textContent = bestOf ? 'Nueva serie' : 'Jugar otra vez';
-          if (youWin) confetti();
+          if (youWin) { confetti(); sfx.win(); } else { sfx.bad(); }
         } else {
           kick.textContent = res.byCount ? 'Ronda por casillas' : '¡Tres en línea!';
           big.textContent = '¡GOL!';
           msg.textContent = winnerName + ' gana la ronda. Marcador ' + scores.X + '–' + scores.O + '. Faltan ' + (TARGET - scores[w]) + ' para la serie.';
           btn.textContent = 'Siguiente ronda ▶';
-          if (youWin) confetti();
+          if (youWin) { confetti(); sfx.win(); } else { sfx.bad(); }
         }
         $('#status').innerHTML = '<b>' + esc(winnerName) + '</b> gana';
       }

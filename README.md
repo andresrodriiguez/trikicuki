@@ -7,28 +7,30 @@ Un **tres en raya** con alma de álbum Panini. Para conquistar una casilla no ba
 ## Cómo se juega
 - Por turnos, eliges una casilla vacía y escribes un jugador.
 - Si cumple **fila + columna**, la casilla es tuya. Si fallas, **pierdes el turno**.
-- Cada turno tiene un **máximo de 60 segundos**; si se agota, pierdes el turno.
+- Cada turno tiene un límite de **60 segundos** (**45 en Ultimate**); si se agota, pierdes el turno.
 - Ganas con **tres en raya**. Si el tablero se bloquea sin línea, gana quien tenga más casillas.
 - Puedes jugar **al mejor de 3** o a una sola partida.
+- **Efectos de sonido** con botón de silencio, y tema claro/oscuro.
 
 ## Modos
 - **Contra la máquina** — tú (equipo Local) contra una IA con 4 niveles de astucia.
 - **Dos jugadores** — en el mismo dispositivo, pasando el móvil.
 
 ## Categorías
-Se combinan **nacionalidades**, **clubes**, **ligas** (Premier, LaLiga, Serie A, Bundesliga, Ligue 1), **posiciones** (portero, defensa, medio, delantero) y **logros** (Mundial, Champions, Balón de Oro).
+Se combinan **nacionalidades**, **clubes**, **ligas** (Premier, LaLiga, Serie A, Bundesliga, Ligue 1, Eredivisie, Primeira Liga, MLS), **posiciones** (portero, defensa, medio, delantero) y **logros** (Mundial, Champions, Balón de Oro).
 
 ## Niveles
 | Nivel | Categorías | Ayuda al escribir | Máquina |
 |-------|-----------|-------------------|---------|
-| **Fácil** | comunes, muchas respuestas por casilla | autocompletado + pista con iniciales | juega al azar |
+| **Fácil** | comunes, muchas respuestas por casilla | autocompletado | juega al azar |
 | **Medio** | algo más cerradas | autocompletado | bloquea y remata |
-| **Difícil** | cruces exigentes (varias casillas de ≤3) | autocompletado limitado | casi óptima |
-| **Ultimate** | cruces muy cerrados (5+ casillas de ≤2) | **sin autocompletado** | **imbatible** (minimax) |
+| **Difícil** | cruces exigentes | autocompletado limitado (3+ letras) | casi óptima |
+| **Ultimate** | brutal: varias casillas con **una única respuesta** en toda la base | **sin autocompletado** + solo **45 s** | **imbatible** (minimax) |
 
 ## Tecnología
 - HTML + CSS + JavaScript **sin frameworks ni dependencias**.
 - **PWA**: instalable y jugable **sin conexión** (service worker + manifest).
+- Sonido sintetizado con **Web Audio** (sin archivos externos).
 - Diseño responsive, tema claro/oscuro automático, base de datos de +150 futbolistas.
 
 ## Estructura
