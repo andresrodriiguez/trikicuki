@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#08120d" />
-  <title>TRIKITAKA — Tres en raya futbolístico</title>
+  <title>TRIKICUKI — Tres en raya futbolístico</title>
   <meta name="description" content="Tres en raya futbolístico: coloca a un jugador que cumpla la fila y la columna. Contra la máquina o con un amigo." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
@@ -375,7 +375,7 @@
           <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l2.5 1.8-1 3h-3l-1-3L12 2zM4.5 8.2l3 .3.9 3-2.4 1.8-2.6-1.5.1-3.6zM19.5 8.2l.1 3.6-2.6 1.5-2.4-1.8.9-3 3-.3zM8.4 18.6L6.6 21 4 19.6l.6-3 3 .2.8 1.8zM15.6 18.6l.8-1.8 3-.2.6 3L17.4 21l-1.8-2.4zM12 10.4l2.6 1.9-1 3.1h-3.2l-1-3.1L12 10.4z" fill="#06130d"/></svg>
         </div>
         <div>
-          <h1>Trikitaka</h1>
+          <h1>Trikicuki</h1>
           <div class="sub">Tres en raya futbolístico</div>
         </div>
       </div>
@@ -911,12 +911,15 @@
       else { ctx.clearRect(0, 0, fx.width, fx.height); fx.classList.remove('show'); }
     }
 
-    /* ---------- Service worker (PWA) ---------- */
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('service-worker.js').catch(function () {});
-      });
-    }
+    /* ---------- Service worker (PWA) — seguro en cualquier entorno ---------- */
+    try {
+      if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+        window.addEventListener('load', function () {
+          try { navigator.serviceWorker.register('service-worker.js').catch(function () {}); }
+          catch (e) {}
+        });
+      }
+    } catch (e) {}
   })();
   </script>
 </body>

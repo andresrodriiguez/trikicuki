@@ -1,4 +1,4 @@
-# ⚽ TRIKITAKA — Tres en raya futbolístico
+# ⚽ TRIKICUKI — Tres en raya futbolístico
 
 Un **tres en raya** con alma de álbum Panini. Para conquistar una casilla no basta con marcarla: tienes que nombrar a un **futbolista que cumpla la categoría de su fila y la de su columna** a la vez. Por ejemplo, cruce de *Argentina* × *Ganó el Mundial* → **Messi**, **Di María**, **Dibu Martínez**… El primero que hace **tres en línea** gana.
 
@@ -34,10 +34,10 @@ manifest.webmanifest / service-worker.js / icon*.svg   PWA
 ```
 
 ## Publicar en GitHub Pages
-1. Crea un repositorio en GitHub, por ejemplo `trikitaka`.
+1. Crea un repositorio en GitHub, por ejemplo `trikicuki`.
 2. Sube estos archivos (ver comandos abajo).
 3. En **Settings → Pages**, elige la rama `main` y carpeta `/root`.
-4. Tu juego quedará en `https://<tu-usuario>.github.io/trikitaka/`.
+4. Tu juego quedará en `https://<tu-usuario>.github.io/trikicuki/`.
 
 ---
 Hecho con ⚽. Los datos de jugadores se basan en hechos ampliamente reconocidos; si detectas alguno discutible, se corrige en `core.js`.

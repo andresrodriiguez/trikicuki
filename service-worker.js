@@ -1,5 +1,5 @@
-/* Trikitaka — service worker (offline) */
-var CACHE = 'trikitaka-v1';
+/* Trikicuki — service worker (offline) */
+var CACHE = 'trikicuki-v1';
 var ASSETS = [
   './',
   './index.html',
