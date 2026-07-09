@@ -1,5 +1,8 @@
-/* Trikicuki — service worker (offline) */
-var CACHE = 'trikicuki-v1';
+/* Trikicuki — service worker (offline, network-first)
+   Estrategia: intenta SIEMPRE la red primero y actualiza la caché; si no hay
+   conexión, sirve desde la caché. Así el juego se actualiza solo al desplegar
+   y sigue funcionando sin conexión. */
+var CACHE = 'trikicuki-v3';
 var ASSETS = [
   './',
   './index.html',
@@ -10,7 +13,9 @@ var ASSETS = [
 ];
 
 self.addEventListener('install', function (e) {
-  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }).then(function () { return self.skipWaiting(); }));
+  e.waitUntil(
+    caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }).then(function () { return self.skipWaiting(); })
+  );
 });
 
 self.addEventListener('activate', function (e) {
@@ -24,12 +29,12 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    caches.match(e.request).then(function (hit) {
-      return hit || fetch(e.request).then(function (res) {
-        var copy = res.clone();
-        caches.open(CACHE).then(function (c) { try { c.put(e.request, copy); } catch (x) {} });
-        return res;
-      }).catch(function () { return caches.match('./index.html'); });
+    fetch(e.request).then(function (res) {
+      var copy = res.clone();
+      caches.open(CACHE).then(function (c) { try { c.put(e.request, copy); } catch (x) {} });
+      return res;
+    }).catch(function () {
+      return caches.match(e.request).then(function (hit) { return hit || caches.match('./index.html'); });
     })
   );
 });
