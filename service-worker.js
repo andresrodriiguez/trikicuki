@@ -2,11 +2,12 @@
    Estrategia: intenta SIEMPRE la red primero y actualiza la caché; si no hay
    conexión, sirve desde la caché. Así el juego se actualiza solo al desplegar
    y sigue funcionando sin conexión. */
-var CACHE = 'trikicuki-v3';
+var CACHE = 'trikicuki-v4';
 var ASSETS = [
   './',
   './index.html',
   './core.js',
+  './firebase-config.js',
   './manifest.webmanifest',
   './icon.svg',
   './icon-maskable.svg'

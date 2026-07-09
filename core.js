@@ -530,6 +530,141 @@
     return (best && best.idx != null) ? best.idx : preferCells(emptyCells(board));
   }
 
+  /* ============================================================
+     LÓGICA DE SALA ONLINE (funciones puras, reutilizadas por el
+     multijugador de Firebase). "room" es el estado compartido.
+     ============================================================ */
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  function onlineSolutions(room) {
+    var sol = [[], [], []];
+    for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) {
+      sol[r][c] = solvers(CAT_BY_ID[room.rowIds[r]], CAT_BY_ID[room.colIds[c]]);
+    }
+    return sol;
+  }
+  function usedMap(room) { return room.used || {}; }
+  function cellHasAnswer(sol, used, idx) {
+    return sol[Math.floor(idx / 3)][idx % 3].some(function (n) { return !used[n]; });
+  }
+  function anyMoveLeftRoom(room, sol) {
+    var used = usedMap(room);
+    for (var i = 0; i < 9; i++) if (!room.board[i] && cellHasAnswer(sol, used, i)) return true;
+    return false;
+  }
+  function resolveByCountBoard(board) {
+    var res = checkWinner(board);
+    if (res) return res;
+    var x = 0, o = 0;
+    board.forEach(function (m) { if (m === 'X') x++; else if (m === 'O') o++; });
+    if (x > o) return { winner: 'X', byCount: true };
+    if (o > x) return { winner: 'O', byCount: true };
+    return { winner: 'draw' };
+  }
+  function emptyBoard() { return ['', '', '', '', '', '', '', '', '']; }
+
+  // Crea el estado inicial de una partida online (host = X, invitado = O)
+  function onlineNewRoom(opts) {
+    var g = generateGrid(opts.level);
+    return {
+      level: opts.level,
+      bestOf: !!opts.bestOf,
+      seconds: opts.seconds || 0,           // 0 = sin límite
+      rowIds: g.rowIds, colIds: g.colIds,
+      board: emptyBoard(),
+      cellPlayer: emptyBoard(),
+      used: {},
+      turn: 'X',
+      scores: { X: 0, O: 0 },
+      status: 'playing',
+      winner: null, line: null, byCount: false,
+      round: 1, matchOver: false,
+      moveSeq: 0
+    };
+  }
+
+  function finalizeRoom(room, res) {
+    room.status = 'ended';
+    room.byCount = !!res.byCount;
+    if (res.winner === 'draw') {
+      room.winner = 'draw'; room.line = null;
+      room.matchOver = !room.bestOf;
+    } else {
+      room.winner = res.winner; room.line = res.line || null;
+      room.scores[res.winner] = (room.scores[res.winner] || 0) + 1;
+      room.matchOver = !room.bestOf || room.scores[res.winner] >= 2;
+    }
+    return room;
+  }
+
+  // Aplica una jugada válida (colocar ficha). mv = { idx, mark, player }
+  function onlineApplyMove(room, mv) {
+    var r = clone(room);
+    r.board[mv.idx] = mv.mark;
+    r.cellPlayer[mv.idx] = mv.player;
+    r.used = r.used || {};
+    r.used[mv.player] = true;
+    r.moveSeq = (room.moveSeq || 0) + 1;
+    var res = checkWinner(r.board);
+    if (res) return finalizeRoom(r, res.winner === 'draw' ? { winner: 'draw' } : res);
+    if (!anyMoveLeftRoom(r, onlineSolutions(r))) return finalizeRoom(r, resolveByCountBoard(r.board));
+    r.turn = mv.mark === 'X' ? 'O' : 'X';
+    return r;
+  }
+
+  // Cede el turno (fallo, rendición o tiempo agotado). mv = { mark }
+  function onlineApplyPass(room, mv) {
+    var r = clone(room);
+    r.moveSeq = (room.moveSeq || 0) + 1;
+    if (!anyMoveLeftRoom(r, onlineSolutions(r))) return finalizeRoom(r, resolveByCountBoard(r.board));
+    r.turn = mv.mark === 'X' ? 'O' : 'X';
+    return r;
+  }
+
+  // Serialización segura para Realtime Database (evita arrays con huecos/null)
+  function onlineEncode(r) {
+    var players = {};
+    r.cellPlayer.forEach(function (n, i) { if (n) players[String(i)] = n; });
+    return {
+      level: r.level, bestOf: !!r.bestOf, seconds: r.seconds || 0,
+      rowIds: r.rowIds, colIds: r.colIds,
+      board: r.board.map(function (m) { return m || '-'; }).join(''),
+      players: players, used: r.used || {},
+      turn: r.turn, scores: r.scores, status: r.status,
+      winner: r.winner || null, line: r.line || null, byCount: !!r.byCount,
+      round: r.round || 1, matchOver: !!r.matchOver, moveSeq: r.moveSeq || 0
+    };
+  }
+  function onlineDecode(g) {
+    g = g || {};
+    var board = (g.board || '---------').split('').map(function (c) { return c === '-' ? '' : c; });
+    while (board.length < 9) board.push('');
+    var players = g.players || {}, cellPlayer = [];
+    for (var i = 0; i < 9; i++) cellPlayer[i] = players[String(i)] || '';
+    return {
+      level: g.level || 'facil', bestOf: !!g.bestOf, seconds: g.seconds || 0,
+      rowIds: g.rowIds || [], colIds: g.colIds || [],
+      board: board, cellPlayer: cellPlayer, used: g.used || {},
+      turn: g.turn || 'X', scores: g.scores || { X: 0, O: 0 }, status: g.status || 'playing',
+      winner: g.winner || null, line: g.line || null, byCount: !!g.byCount,
+      round: g.round || 1, matchOver: !!g.matchOver, moveSeq: g.moveSeq || 0
+    };
+  }
+
+  // Siguiente ronda (mantiene marcador) o nueva serie si la anterior cerró la serie
+  function onlineNextRound(room) {
+    var r = clone(room);
+    if (r.matchOver) r.scores = { X: 0, O: 0 };
+    var g = generateGrid(r.level);
+    r.rowIds = g.rowIds; r.colIds = g.colIds;
+    r.board = emptyBoard(); r.cellPlayer = emptyBoard();
+    r.used = {}; r.turn = 'X'; r.status = 'playing';
+    r.winner = null; r.line = null; r.byCount = false; r.matchOver = false;
+    r.round = r.scores.X + r.scores.O + 1;
+    r.moveSeq = (room.moveSeq || 0) + 1;
+    return r;
+  }
+
   var API = {
     players: P,
     categories: CATS,
@@ -541,7 +676,17 @@
     aiChooseCell: aiChooseCell,
     solvers: solvers,
     DIFF: DIFF,
-    catById: function (id) { return CAT_BY_ID[id]; }
+    catById: function (id) { return CAT_BY_ID[id]; },
+    // online
+    onlineNewRoom: onlineNewRoom,
+    onlineApplyMove: onlineApplyMove,
+    onlineApplyPass: onlineApplyPass,
+    onlineNextRound: onlineNextRound,
+    onlineEncode: onlineEncode,
+    onlineDecode: onlineDecode,
+    onlineSolutions: onlineSolutions,
+    onlineCellHasAnswer: function (room, idx) { return cellHasAnswer(onlineSolutions(room), usedMap(room), idx); },
+    onlineAnyMoveLeft: function (room) { return anyMoveLeftRoom(room, onlineSolutions(room)); }
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = API;

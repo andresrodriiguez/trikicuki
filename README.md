@@ -15,6 +15,13 @@ Un **tres en raya** con alma de álbum Panini. Para conquistar una casilla no ba
 ## Modos
 - **Contra la máquina** — tú (equipo Local) contra una IA con 4 niveles de astucia.
 - **Dos jugadores** — en el mismo dispositivo, pasando el móvil.
+- **Online (a distancia)** — crea una sala, comparte el código o el enlace, y juega con un amigo desde otro teléfono en tiempo real (requiere configurar Firebase; ver abajo).
+
+## Online con Firebase
+El multijugador usa **Firebase Realtime Database**. Para activarlo, pon las claves de tu proyecto en `firebase-config.js`. Las claves web de Firebase son públicas por diseño (la seguridad se controla con las reglas de la base de datos), así que es seguro subirlas. Reglas recomendadas para la Realtime Database:
+```json
+{ "rules": { "rooms": { "$code": { ".read": true, ".write": true } } } }
+```
 
 ## Categorías
 Se combinan **nacionalidades**, **clubes**, **ligas** (Premier, LaLiga, Serie A, Bundesliga, Ligue 1, Eredivisie, Primeira Liga, MLS), **posiciones** (portero, defensa, medio, delantero) y **logros** (Mundial, Champions, Balón de Oro).

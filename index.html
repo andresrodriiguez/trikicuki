@@ -194,6 +194,37 @@
     .rules { color: var(--muted); font-size: 12.5px; line-height: 1.6; padding: 4px 6px 0; }
     .rules b { color: var(--ink); }
 
+    /* ---- CTA secundario / online ---- */
+    .cta.alt {
+      background: transparent; color: var(--ink); border: 1px solid var(--line-strong);
+      box-shadow: none; font-size: 16px;
+    }
+    .cta.alt:hover { filter: none; background: var(--panel-2); }
+
+    /* ---- Pantalla online ---- */
+    .online-actions { display: grid; gap: 12px; }
+    .room-field { display: flex; gap: 9px; }
+    .room-field input {
+      flex: 1; padding: 14px; border-radius: 12px; border: 1px solid var(--line-strong);
+      background: var(--bg2); color: var(--ink); font: inherit; font-size: 16px; outline: none; min-width: 0;
+    }
+    .room-field input:focus { border-color: var(--o); box-shadow: 0 0 0 3px var(--o-soft); }
+    #joinCode { text-transform: uppercase; letter-spacing: .18em; font-family: var(--f-mono); font-weight: 700; }
+    .roomcode {
+      font-family: var(--f-display); font-size: clamp(38px, 13vw, 60px); letter-spacing: .12em; text-align: center;
+      background: linear-gradient(120deg, var(--x), var(--o)); -webkit-background-clip: text; background-clip: text; color: transparent;
+      margin: 6px 0;
+    }
+    .share-row { display: flex; gap: 9px; }
+    .waiting { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--muted); font-size: 14px; padding: 6px 0; }
+    .dot-pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--o); animation: pulse 1.1s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
+    .netmsg { text-align: center; font-size: 13px; min-height: 18px; margin-top: 6px; }
+    .netmsg.err { color: var(--bad); } .netmsg.ok { color: var(--good); }
+    .conn { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+    .conn .led { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .conn.on .led { background: var(--good); } .conn.off .led { background: var(--bad); }
+
     /* ============ MARCADOR ============ */
     .board-head { display: flex; align-items: stretch; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
     .team {
@@ -451,11 +482,51 @@
         </div>
 
         <button class="cta" id="playBtn" style="margin-top:20px;">Jugar ⚽</button>
+        <button class="cta alt" id="onlineBtn" style="margin-top:10px;">🌐 Jugar online (a distancia)</button>
 
         <p class="rules">
           <b>Cómo se juega:</b> por turnos eliges una casilla y escribes un futbolista. Si cumple las dos categorías, la casilla es tuya.
           Si fallas, pierdes el turno. La dificultad cambia lo raras que son las categorías y la astucia de la máquina.
         </p>
+      </div>
+
+      <div class="foot">Aplicación hecha por cuki ⚽</div>
+    </section>
+
+    <!-- ======= ONLINE (LOBBY) ======= -->
+    <section class="screen" id="screen-online">
+      <div class="card hero" style="padding:22px 18px;">
+        <div class="kick">Multijugador</div>
+        <h2 style="font-size:clamp(26px,8vw,40px);">Jugar online</h2>
+        <p>Juega con un amigo desde otro teléfono. Crea una sala y comparte el código o el enlace.</p>
+      </div>
+
+      <div class="card block" id="onlineHome" style="margin-top:14px;">
+        <div class="label">Tu nombre</div>
+        <div class="room-field"><input id="playerName" type="text" placeholder="Tu nombre" maxlength="16" autocomplete="off" /></div>
+
+        <div class="online-actions" style="margin-top:16px;">
+          <button class="cta" id="createRoomBtn">Crear sala nueva</button>
+          <div class="label" style="text-align:center; margin:6px 0 0;">o únete con un código</div>
+          <div class="room-field">
+            <input id="joinCode" type="text" placeholder="CÓDIGO" maxlength="4" autocomplete="off" />
+            <button class="btn" id="joinRoomBtn" style="flex:0 0 auto; padding:12px 18px;">Unirse</button>
+          </div>
+        </div>
+        <div class="netmsg" id="netMsg"></div>
+        <button class="btn ghost" id="onlineBackBtn" style="width:100%; margin-top:14px;">◀ Volver</button>
+      </div>
+
+      <!-- sala creada / esperando -->
+      <div class="card block" id="onlineWait" style="margin-top:14px; display:none;">
+        <div class="label" style="text-align:center;">Comparte este código</div>
+        <div class="roomcode" id="roomCode">----</div>
+        <div class="share-row">
+          <button class="btn" id="copyLinkBtn" style="flex:1;">📋 Copiar enlace</button>
+          <button class="btn" id="shareBtn" style="flex:1;">📤 Compartir</button>
+        </div>
+        <div class="waiting" id="waitMsg"><span class="dot-pulse"></span> Esperando a que se una tu rival…</div>
+        <button class="btn ghost" id="cancelRoomBtn" style="width:100%; margin-top:6px;">Cancelar</button>
       </div>
 
       <div class="foot">Aplicación hecha por cuki ⚽</div>
@@ -531,6 +602,7 @@
   </div>
   <canvas id="fx"></canvas>
 
+  <script src="firebase-config.js"></script>
   <script src="core.js"></script>
   <script>
   (function () {
@@ -626,6 +698,7 @@
     var TARGET = 2;               // victorias para ganar el "mejor de 3"
     var autoMode = 'full';        // 'full' | 'limited' | 'none' (autocompletado)
     var TURN_SECONDS = 60, timeLeft = 60, timerId = null;
+    var online = false, net = null, roomState = null, lastGridKey = '';  // multijugador
     var LVL_NAME = { facil: 'Fácil', medio: 'Medio', dificil: 'Difícil', ultimate: 'Ultimate' };
 
     function currentRound() { return scores.X + scores.O + 1; }
@@ -645,6 +718,8 @@
     /* ---------- Iniciar ---------- */
     function startGame() {
       ensureAudio();
+      online = false;
+      $('#againBtn').style.display = '';
       autoMode = FGC.DIFF[level].autocomplete || 'full';
       TURN_SECONDS = levelSeconds();
       scores = { X: 0, O: 0 };
@@ -783,6 +858,13 @@
       if (over || busy) return;
       ensureAudio();
       if (board[idx]) return;
+      if (online) {
+        if (!roomState || roomState.status !== 'playing') return;
+        if (roomState.turn !== net.myMark) { flashStatus('Espera tu turno…', true); return; }
+        if (!hasUnusedSolution(idx)) { flashStatus('Esa casilla ya no tiene respuestas', true); return; }
+        openModal(idx);
+        return;
+      }
       if (mode === 'cpu' && turn === 'O') return;
       if (!hasUnusedSolution(idx)) {
         flashStatus('Esa casilla ya no tiene respuestas disponibles', true);
@@ -845,7 +927,7 @@
     $('#submitBtn').addEventListener('click', submit);
     $('#passBtn').addEventListener('click', function () {
       closeModal();
-      passTurn('Turno rendido.');
+      if (online) netPass('Turno rendido.'); else passTurn('Turno rendido.');
     });
 
     function submit() {
@@ -859,7 +941,10 @@
         fb.textContent = '✓ ¡' + res.player + '! Casilla conquistada.';
         fb.className = 'feedback ok';
         var placed = res.player;
-        setTimeout(function () { closeModal(); claim(idx, turn, placed); }, 520);
+        setTimeout(function () {
+          closeModal();
+          if (online) netMove(idx, placed); else claim(idx, turn, placed);
+        }, online ? 420 : 520);
       } else {
         if (res.reason === 'used') { fb.textContent = '✗ ' + res.player + ' ya está en el tablero. Prueba otro.'; }
         else if (res.reason === 'unknown') { fb.textContent = '✗ No reconozco ese nombre. Usa las sugerencias.'; }
@@ -872,7 +957,11 @@
         if (res.reason === 'wrong' || res.reason === 'used') {
           // fallo real: se pierde el turno
           stopTimer();
-          setTimeout(function () { closeModal(); passTurn((res.player || 'Ese jugador') + ' no valía. Pierdes el turno.'); }, 900);
+          setTimeout(function () {
+            closeModal();
+            var m = (res.player || 'Ese jugador') + ' no valía. Pierdes el turno.';
+            if (online) netPass(m); else passTurn(m);
+          }, 900);
         }
       }
     }
@@ -947,7 +1036,8 @@
       if (over) return;
       sfx.bad();
       if ($('#modalBg').classList.contains('show')) closeModal();
-      passTurn('¡Se acabó el tiempo! Turno perdido.');
+      if (online) netPass('¡Se acabó el tiempo! Turno perdido.');
+      else passTurn('¡Se acabó el tiempo! Turno perdido.');
     }
 
     /* ---------- IA ---------- */
@@ -1043,18 +1133,283 @@
 
     // Botón del overlay: nueva serie/partida si terminó todo; si no, siguiente ronda.
     $('#endBtn').addEventListener('click', function () {
+      if (online) { netNextRound(); return; }
       $('#end').classList.remove('show');
       if (matchOver) startGame();   // reinicia marcador y empieza serie/partida nueva
       else newGrid();               // siguiente ronda, mantiene marcador
     });
     // Reiniciar serie desde los controles del juego
     $('#againBtn').addEventListener('click', function () { $('#end').classList.remove('show'); startGame(); });
-    $('#menuBtn').addEventListener('click', function () { $('#end').classList.remove('show'); stopTimer(); show('screen-menu'); });
+    $('#menuBtn').addEventListener('click', function () {
+      $('#end').classList.remove('show'); stopTimer();
+      if (online) leaveOnline();
+      show('screen-menu');
+    });
     $('#playBtn').addEventListener('click', startGame);
     document.querySelector('#modalBg').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
 
     /* ---------- Utilidades ---------- */
     function esc(s) { return (s + '').replace(/[&<>"']/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]; }); }
+
+    /* ============================================================
+       MODO ONLINE (Firebase Realtime Database)
+       ============================================================ */
+    var FB = null;
+    function fbReady() {
+      var c = window.FIREBASE_CONFIG || {};
+      return !!(c.apiKey && c.apiKey.indexOf('PEGA_AQUI') !== 0 && c.databaseURL && c.databaseURL.indexOf('PEGA_AQUI') < 0);
+    }
+    function loadFirebase() {
+      if (FB) return Promise.resolve(FB);
+      return Promise.all([
+        import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js')
+      ]).then(function (m) {
+        var app = m[0].initializeApp(window.FIREBASE_CONFIG);
+        var d = m[1];
+        FB = { db: d.getDatabase(app), ref: d.ref, set: d.set, update: d.update, get: d.get, onValue: d.onValue, onDisconnect: d.onDisconnect, remove: d.remove };
+        return FB;
+      });
+    }
+
+    function netMsg(t, err) {
+      var el = $('#netMsg');
+      el.textContent = t || '';
+      el.className = 'netmsg' + (err ? ' err' : (t ? ' ok' : ''));
+    }
+
+    // serialización segura para RTDB (en core.js, para poder testearla)
+    var encodeRoom = FGC.onlineEncode, decodeGame = FGC.onlineDecode;
+
+    function roomPath(code) { return 'rooms/' + code; }
+    function randomCode() {
+      var A = 'ABCDEFGHJKLMNPQRSTUVWXYZ', s = '';
+      for (var i = 0; i < 4; i++) s += A[Math.floor(Math.random() * A.length)];
+      return s;
+    }
+    function shareLink(code) { return location.origin + location.pathname + '?sala=' + code; }
+
+    // --- abrir lobby ---
+    function openOnline() {
+      $('#onlineHome').style.display = '';
+      $('#onlineWait').style.display = 'none';
+      $('#playerName').value = $('#playerName').value || '';
+      show('screen-online');
+      if (!fbReady()) {
+        netMsg('El modo online aún no está configurado (faltan las claves de Firebase).', true);
+        $('#createRoomBtn').disabled = true; $('#joinRoomBtn').disabled = true;
+      } else {
+        netMsg(''); $('#createRoomBtn').disabled = false; $('#joinRoomBtn').disabled = false;
+      }
+    }
+
+    // --- crear sala (anfitrión = X) ---
+    function createRoom() {
+      if (!fbReady()) { netMsg('Online no configurado.', true); return; }
+      var name = ($('#playerName').value || '').trim().slice(0, 16) || 'Anfitrión';
+      netMsg('Creando sala…');
+      loadFirebase().then(function () {
+        var code = randomCode();
+        var opts = { level: level, bestOf: bestOf, seconds: timerEnabled ? levelSeconds() : 0 };
+        var game = FGC.onlineNewRoom(opts);
+        var payload = { host: name, guest: null, game: encodeRoom(game), createdAt: Date.now() };
+        return FB.set(FB.ref(FB.db, roomPath(code)), payload).then(function () {
+          net = { code: code, myMark: 'X', isHost: true, hostName: name, guestName: null, oppPresent: false };
+          var pref = FB.ref(FB.db, roomPath(code) + '/presence/X');
+          FB.set(pref, true); FB.onDisconnect(pref).remove();
+          net.unsub = FB.onValue(FB.ref(FB.db, roomPath(code)), function (s) { handleSnap(s.val()); });
+          $('#onlineHome').style.display = 'none';
+          $('#onlineWait').style.display = '';
+          $('#roomCode').textContent = code;
+          netMsg('');
+        });
+      }).catch(fbErr);
+    }
+
+    // --- unirse (invitado = O) ---
+    function joinRoom(codeArg) {
+      if (!fbReady()) { netMsg('Online no configurado.', true); return; }
+      var code = (codeArg || $('#joinCode').value || '').trim().toUpperCase().slice(0, 4);
+      var name = ($('#playerName').value || '').trim().slice(0, 16) || 'Invitado';
+      if (code.length < 4) { netMsg('Escribe el código de 4 letras.', true); return; }
+      netMsg('Conectando…');
+      loadFirebase().then(function () {
+        return FB.get(FB.ref(FB.db, roomPath(code))).then(function (snap) {
+          var val = snap.val();
+          if (!val) { netMsg('No existe una sala con ese código.', true); return; }
+          if (val.guest) { netMsg('Esa sala ya está llena.', true); return; }
+          net = { code: code, myMark: 'O', isHost: false, hostName: val.host || 'Anfitrión', guestName: name, oppPresent: true };
+          return FB.update(FB.ref(FB.db, roomPath(code)), { guest: name }).then(function () {
+            var pref = FB.ref(FB.db, roomPath(code) + '/presence/O');
+            FB.set(pref, true); FB.onDisconnect(pref).remove();
+            net.unsub = FB.onValue(FB.ref(FB.db, roomPath(code)), function (s) { handleSnap(s.val()); });
+            netMsg('');
+          });
+        });
+      }).catch(fbErr);
+    }
+
+    function fbErr(e) { netMsg('Error de conexión: ' + (e && e.message ? e.message : e), true); }
+
+    function handleSnap(val) {
+      if (!val) { if (online) { flashStatus('La sala se cerró.', true); } return; }
+      if (net) {
+        net.hostName = val.host || 'Anfitrión';
+        net.guestName = val.guest || null;
+        net.oppPresent = val.presence ? !!val.presence[net.myMark === 'X' ? 'O' : 'X'] : true;
+      }
+      if (!val.guest) return; // aún esperando rival (anfitrión en pantalla de espera)
+      var decoded = decodeGame(val.game);
+      if (roomState && decoded.moveSeq < roomState.moveSeq) return; // ignorar estados viejos
+      if (!online) enterOnlineGame(decoded); else applyRoom(decoded);
+    }
+
+    function enterOnlineGame(room) {
+      online = true;
+      lastGridKey = '';
+      $('#againBtn').style.display = 'none';
+      $('#end').classList.remove('show');
+      show('screen-game');
+      applyRoom(room);
+    }
+
+    function applyRoom(room) {
+      roomState = room;
+      var key = room.rowIds.join(',') + '|' + room.colIds.join(',');
+      if (key !== lastGridKey) {
+        lastGridKey = key;
+        G = {
+          rows: room.rowIds.map(function (id) { return { id: id, label: FGC.catById(id).label }; }),
+          cols: room.colIds.map(function (id) { return { id: id, label: FGC.catById(id).label }; }),
+          rowIds: room.rowIds.slice(), colIds: room.colIds.slice(),
+          solutions: FGC.onlineSolutions(room), difficulty: room.level
+        };
+        renderGrid();
+      }
+      board = room.board.slice();
+      cellPlayer = room.cellPlayer.slice();
+      used = Object.assign({}, room.used);
+      turn = room.turn;
+      over = room.status === 'ended';
+      scores = { X: room.scores.X || 0, O: room.scores.O || 0 };
+      bestOf = room.bestOf; timerEnabled = room.seconds > 0; TURN_SECONDS = room.seconds || 60;
+      for (var i = 0; i < 9; i++) paintCell(cellEl(i), i);
+
+      var meX = net.myMark === 'X';
+      $('#nameX').textContent = (net.hostName || 'Anfitrión') + (meX ? ' (tú)' : '');
+      $('#nameO').textContent = (net.guestName || 'Rival') + (!meX ? ' (tú)' : '');
+      $('#teamX .tk').textContent = 'A'; $('#teamO .tk').textContent = 'I';
+      renderScores();
+      $('#lvlFoot').innerHTML = 'Sala <b>' + esc(net.code) + '</b> · ' + LVL_NAME[room.level] + (room.bestOf ? (' · Ronda ' + (room.scores.X + room.scores.O + 1)) : '') + (net.oppPresent ? '' : ' · <span style="color:var(--bad)">rival desconectado…</span>');
+
+      if (over) { showOnlineEnd(room); return; }
+      $('#end').classList.remove('show');
+      $('#teamX').classList.toggle('active', turn === 'X');
+      $('#teamO').classList.toggle('active', turn === 'O');
+      var myTurn = (turn === net.myMark);
+      var oppName = turn === 'X' ? net.hostName : net.guestName;
+      $('#status').innerHTML = myTurn ? 'Es <b>tu turno</b> — elige una casilla' : 'Turno de <b>' + esc(oppName || 'rival') + '</b>…';
+      if (myTurn && timerEnabled) startTimer(); else { stopTimer(); $('#timer').classList.add('hidden'); }
+    }
+
+    function showOnlineEnd(room) {
+      stopTimer(); $('#timer').classList.add('hidden');
+      $('#teamX').classList.remove('active'); $('#teamO').classList.remove('active');
+      if (room.line) room.line.forEach(function (i) { cellEl(i).classList.add('win'); });
+      var big = $('#endBig'), kick = $('#endKick'), msg = $('#endMsg'), btn = $('#endBtn');
+      var iWon = room.winner === net.myMark;
+      if (room.winner === 'draw') {
+        kick.textContent = 'Silbato final'; big.textContent = 'EMPATE';
+        big.style.background = 'linear-gradient(120deg,var(--muted),var(--ink))'; big.style.webkitBackgroundClip = 'text'; big.style.backgroundClip = 'text';
+        msg.textContent = room.bestOf ? ('Ronda empatada. Marcador ' + room.scores.X + '–' + room.scores.O + '.') : 'Nadie completó una línea.';
+        tone(392, 0.16, 'sine', 0.12);
+        $('#status').innerHTML = '<b>Empate</b>';
+      } else {
+        var wname = room.winner === 'X' ? net.hostName : net.guestName;
+        big.style.background = 'linear-gradient(120deg,var(--x),var(--o))'; big.style.webkitBackgroundClip = 'text'; big.style.backgroundClip = 'text';
+        big.textContent = iWon ? '¡GOOOL!' : 'FIN';
+        if (room.matchOver) {
+          kick.textContent = room.bestOf ? 'Fin de la serie' : (room.byCount ? 'Gana por casillas' : '¡Tres en línea!');
+          msg.textContent = room.bestOf
+            ? (wname + ' gana la serie ' + room.scores[room.winner] + '–' + room.scores[room.winner === 'X' ? 'O' : 'X'] + '.')
+            : (wname + ' gana' + (room.byCount ? ' por mayoría de casillas.' : '.'));
+        } else {
+          kick.textContent = room.byCount ? 'Ronda por casillas' : '¡Tres en línea!';
+          msg.textContent = wname + ' gana la ronda. Marcador ' + room.scores.X + '–' + room.scores.O + '.';
+        }
+        if (iWon) { confetti(); sfx.win(); } else sfx.bad();
+        $('#status').innerHTML = '<b>' + esc(wname) + '</b> gana';
+      }
+      if (net.isHost) {
+        btn.disabled = false;
+        btn.textContent = room.matchOver ? (room.bestOf ? 'Nueva serie' : 'Jugar otra vez') : 'Siguiente ronda ▶';
+      } else {
+        btn.disabled = true; btn.textContent = 'Esperando al anfitrión…';
+      }
+      $('#end').classList.add('show');
+    }
+
+    function writeGame(nr) {
+      if (!net || !FB) return;
+      FB.update(FB.ref(FB.db, roomPath(net.code) + '/game'), encodeRoom(nr)).catch(function () {});
+    }
+    function netMove(idx, player) {
+      if (!net || !roomState) return;
+      var nr = FGC.onlineApplyMove(roomState, { idx: idx, mark: net.myMark, player: player });
+      writeGame(nr); applyRoom(nr);   // optimista; el listener confirmará
+    }
+    function netPass(msg) {
+      if (!net || !roomState) return;
+      flashStatus(msg, true);
+      var nr = FGC.onlineApplyPass(roomState, { mark: net.myMark });
+      writeGame(nr); applyRoom(nr);
+    }
+    function netNextRound() {
+      if (!net || !net.isHost || !roomState) return;
+      $('#end').classList.remove('show');
+      var nr = FGC.onlineNextRound(roomState);
+      writeGame(nr); applyRoom(nr);
+    }
+
+    function leaveOnline() {
+      try { if (net && net.unsub) net.unsub(); } catch (e) {}
+      try {
+        if (net && FB) {
+          FB.remove(FB.ref(FB.db, roomPath(net.code) + '/presence/' + net.myMark));
+          if (net.isHost) FB.remove(FB.ref(FB.db, roomPath(net.code))); // el anfitrión cierra la sala
+        }
+      } catch (e) {}
+      online = false; net = null; roomState = null; lastGridKey = '';
+      $('#endBtn').disabled = false;
+      $('#againBtn').style.display = '';
+    }
+
+    // --- botones del lobby ---
+    $('#onlineBtn').addEventListener('click', function () { ensureAudio(); openOnline(); });
+    $('#onlineBackBtn').addEventListener('click', function () { show('screen-menu'); });
+    $('#createRoomBtn').addEventListener('click', createRoom);
+    $('#joinRoomBtn').addEventListener('click', function () { joinRoom(); });
+    $('#joinCode').addEventListener('keydown', function (e) { if (e.key === 'Enter') joinRoom(); });
+    $('#cancelRoomBtn').addEventListener('click', function () { leaveOnline(); openOnline(); });
+    $('#copyLinkBtn').addEventListener('click', function () {
+      var link = shareLink(net ? net.code : '');
+      if (navigator.clipboard) navigator.clipboard.writeText(link).then(function () { flashCopy('📋 ¡Enlace copiado!'); }, function () { prompt('Copia el enlace:', link); });
+      else prompt('Copia el enlace:', link);
+    });
+    $('#shareBtn').addEventListener('click', function () {
+      var link = shareLink(net ? net.code : '');
+      var data = { title: 'TRIKICUKI', text: 'Te reto a un tres en raya futbolístico. Únete a mi sala:', url: link };
+      if (navigator.share) navigator.share(data).catch(function () {});
+      else if (navigator.clipboard) navigator.clipboard.writeText(link).then(function () { flashCopy('📋 ¡Enlace copiado!'); });
+      else prompt('Copia el enlace:', link);
+    });
+    function flashCopy(t) { var w = $('#waitMsg'); var prev = w.innerHTML; w.innerHTML = t; setTimeout(function () { w.innerHTML = prev; }, 1500); }
+
+    // --- enlace directo ?sala=CODE ---
+    (function () {
+      var code = new URLSearchParams(location.search).get('sala');
+      if (code) { openOnline(); $('#joinCode').value = code.toUpperCase().slice(0, 4); netMsg('Escribe tu nombre y pulsa Unirse.'); }
+    })();
 
     /* ---------- Confeti ---------- */
     var fx = $('#fx'), ctx = fx.getContext('2d'), parts = [], raf = null;
