@@ -585,7 +585,7 @@
       </div>
       <div class="feedback" id="feedback"></div>
       <div class="modal-actions">
-        <button class="btn ghost" id="passBtn">Rendir turno</button>
+        <button class="btn ghost" id="passBtn">Cerrar</button>
         <button class="btn primary" id="submitBtn">Confirmar</button>
       </div>
     </div>
@@ -850,6 +850,13 @@
       $('#teamO').classList.toggle('active', turn === 'O' && !over);
       var st = $('#status');
       if (over) return;
+      if (online) {
+        if (!roomState || !net) return;
+        var myTurn = roomState.turn === net.myMark;
+        var oppName = roomState.turn === 'X' ? net.hostName : net.guestName;
+        st.innerHTML = myTurn ? 'Es <b>tu turno</b> — elige una casilla' : 'Turno de <b>' + esc(oppName || 'rival') + '</b>…';
+        return;
+      }
       if (mode === 'cpu' && turn === 'O') { st.innerHTML = '<b>La máquina</b> está pensando…'; return; }
       st.innerHTML = 'Turno de <b>' + esc(teamName(turn)) + '</b> — elige una casilla';
     }
@@ -926,8 +933,7 @@
 
     $('#submitBtn').addEventListener('click', submit);
     $('#passBtn').addEventListener('click', function () {
-      closeModal();
-      if (online) netPass('Turno rendido.'); else passTurn('Turno rendido.');
+      closeModal();   // cerrar sin penalización: puedes elegir otra casilla
     });
 
     function submit() {
@@ -945,24 +951,27 @@
           closeModal();
           if (online) netMove(idx, placed); else claim(idx, turn, placed);
         }, online ? 420 : 520);
+      } else if (res.reason === 'unknown' || res.reason === 'empty') {
+        // Nombre no reconocido o vacío: NO cuesta el turno, sigue intentando.
+        fb.textContent = res.reason === 'empty' ? '✗ Escribe un nombre.' : '✗ No reconozco ese nombre. Usa las sugerencias.';
+        fb.className = 'feedback err';
+        sfx.bad();
+        var mEl0 = document.querySelector('.modal');
+        mEl0.classList.remove('shake'); void mEl0.offsetWidth; mEl0.classList.add('shake');
       } else {
-        if (res.reason === 'used') { fb.textContent = '✗ ' + res.player + ' ya está en el tablero. Prueba otro.'; }
-        else if (res.reason === 'unknown') { fb.textContent = '✗ No reconozco ese nombre. Usa las sugerencias.'; }
-        else if (res.reason === 'empty') { fb.textContent = '✗ Escribe un nombre.'; }
+        // Jugador real que no cumple, o ya usado: fallo → se pierde el turno.
+        if (res.reason === 'used') { fb.textContent = '✗ ' + res.player + ' ya está en el tablero.'; }
         else { fb.textContent = '✗ ' + (res.player || 'Ese jugador') + ' no cumple ambas categorías.'; }
         fb.className = 'feedback err';
         sfx.bad();
         var mEl = document.querySelector('.modal');
         mEl.classList.remove('shake'); void mEl.offsetWidth; mEl.classList.add('shake');
-        if (res.reason === 'wrong' || res.reason === 'used') {
-          // fallo real: se pierde el turno
-          stopTimer();
-          setTimeout(function () {
-            closeModal();
-            var m = (res.player || 'Ese jugador') + ' no valía. Pierdes el turno.';
-            if (online) netPass(m); else passTurn(m);
-          }, 900);
-        }
+        stopTimer();
+        setTimeout(function () {
+          closeModal();
+          var m = (res.player || 'Ese jugador') + ' no valía. Pierdes el turno.';
+          if (online) netPass(m); else passTurn(m);
+        }, 950);
       }
     }
 
@@ -1161,6 +1170,7 @@
     }
     function loadFirebase() {
       if (FB) return Promise.resolve(FB);
+      if (window.__FB_MOCK) { FB = window.__FB_MOCK; return Promise.resolve(FB); }  // punto de prueba
       return Promise.all([
         import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
         import('https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js')
