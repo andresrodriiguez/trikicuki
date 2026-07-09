@@ -454,7 +454,8 @@
     return e;
   }
 
-  function minimax(board, me, cur, depth) {
+  // Minimax con poda alfa-beta (misma jugada óptima, casi instantáneo)
+  function minimax(board, me, cur, depth, alpha, beta) {
     var res = checkWinner(board);
     if (res) {
       if (res.winner === me) return { score: 10 - depth };
@@ -463,17 +464,19 @@
     }
     var empties = emptyCells(board);
     var best = null;
+    var maximizing = (cur === me);
     for (var i = 0; i < empties.length; i++) {
       var idx = empties[i];
       board[idx] = cur;
-      var sub = minimax(board, me, cur === 'X' ? 'O' : 'X', depth + 1);
+      var sub = minimax(board, me, cur === 'X' ? 'O' : 'X', depth + 1, alpha, beta);
       board[idx] = '';
       var s = sub.score;
-      if (best === null ||
-          (cur === me && s > best.score) ||
-          (cur !== me && s < best.score)) {
+      if (best === null || (maximizing ? s > best.score : s < best.score)) {
         best = { score: s, idx: idx };
       }
+      if (maximizing) { if (s > alpha) alpha = s; }
+      else { if (s < beta) beta = s; }
+      if (beta <= alpha) break; // poda
     }
     return best;
   }
@@ -523,7 +526,7 @@
 
   function minimaxCell(board, mark) {
     var b = board.slice();
-    var best = minimax(b, mark, mark, 0);
+    var best = minimax(b, mark, mark, 0, -Infinity, Infinity);
     return (best && best.idx != null) ? best.idx : preferCells(emptyCells(board));
   }
 
