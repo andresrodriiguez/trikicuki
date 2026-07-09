@@ -158,7 +158,35 @@
     { n: 'Gareth Bale', nat: 'Gales', cl: ['Tottenham', 'Real Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
     { n: 'Ryan Giggs', nat: 'Gales', cl: ['Manchester United'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
     { n: 'George Best', nat: 'Irlanda del Norte', cl: ['Manchester United'], wc: 0, ucl: 1, bdo: 1, pos: 'DEL' },
-    { n: 'Peter Schmeichel', nat: 'Dinamarca', cl: ['Manchester United', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' }
+    { n: 'Peter Schmeichel', nat: 'Dinamarca', cl: ['Manchester United', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' },
+
+    // --- Ampliación: más leyendas y variedad de ligas ---
+    { n: 'Andriy Shevchenko', nat: 'Ucrania', cl: ['Dynamo Kyiv', 'AC Milan', 'Chelsea'], wc: 0, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Pavel Nedvěd', nat: 'República Checa', cl: ['Lazio', 'Juventus'], wc: 0, ucl: 0, bdo: 1, pos: 'MED' },
+    { n: 'Hristo Stoichkov', nat: 'Bulgaria', cl: ['Barcelona'], wc: 0, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Roberto Baggio', nat: 'Italia', cl: ['Fiorentina', 'Juventus', 'AC Milan', 'Inter'], wc: 0, ucl: 0, bdo: 1, pos: 'DEL' },
+    { n: 'Raúl González', nat: 'España', cl: ['Real Madrid', 'Schalke 04'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Petr Čech', nat: 'República Checa', cl: ['Chelsea', 'Arsenal'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' },
+    { n: 'Ashley Cole', nat: 'Inglaterra', cl: ['Arsenal', 'Chelsea'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Vincent Kompany', nat: 'Bélgica', cl: ['Hamburgo', 'Manchester City'], wc: 0, ucl: 0, bdo: 0, pos: 'DEF' },
+    { n: 'Riyad Mahrez', nat: 'Argelia', cl: ['Leicester', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'İlkay Gündoğan', nat: 'Alemania', cl: ['Borussia Dortmund', 'Manchester City', 'Barcelona'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Phil Foden', nat: 'Inglaterra', cl: ['Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Bukayo Saka', nat: 'Inglaterra', cl: ['Arsenal'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Jude Bellingham', nat: 'Inglaterra', cl: ['Borussia Dortmund', 'Real Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Declan Rice', nat: 'Inglaterra', cl: ['West Ham', 'Arsenal'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Son Heung-min', nat: 'Corea del Sur', cl: ['Hamburgo', 'Tottenham'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Gonzalo Higuaín', nat: 'Argentina', cl: ['Real Madrid', 'Napoli', 'Juventus'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Paulo Dybala', nat: 'Argentina', cl: ['Palermo', 'Juventus', 'Roma'], wc: 1, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Isco', nat: 'España', cl: ['Málaga', 'Real Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Koke', nat: 'España', cl: ['Atlético Madrid'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Alan Shearer', nat: 'Inglaterra', cl: ['Blackburn', 'Newcastle'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Gianfranco Zola', nat: 'Italia', cl: ['Napoli', 'Parma', 'Chelsea'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Radamel Falcao', nat: 'Colombia', cl: ['Porto', 'Atlético Madrid', 'Monaco', 'Manchester United', 'Chelsea'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'James Rodríguez', nat: 'Colombia', cl: ['Porto', 'Monaco', 'Real Madrid', 'Bayern Munich', 'Everton'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Arturo Vidal', nat: 'Chile', cl: ['Bayer Leverkusen', 'Juventus', 'Bayern Munich', 'Barcelona', 'Inter'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Alexis Sánchez', nat: 'Chile', cl: ['Udinese', 'Barcelona', 'Arsenal', 'Manchester United', 'Inter', 'Marseille'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Keylor Navas', nat: 'Costa Rica', cl: ['Levante', 'Real Madrid', 'PSG'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' }
   ];
 
   /* ---------- Alias manuales (además del apellido y nombre completo) ---------- */
@@ -178,7 +206,14 @@
     'Ángel Di María': ['di maria', 'fideo'],
     "N'Golo Kanté": ['kante'],
     'Ronaldinho': ['ronaldinho', 'dinho'],
-    "Samuel Eto'o": ['etoo', 'eto o']
+    "Samuel Eto'o": ['etoo', 'eto o'],
+    'Raúl González': ['raul'],
+    'James Rodríguez': ['james'],
+    'Andriy Shevchenko': ['sheva', 'shevchenko'],
+    'Gonzalo Higuaín': ['higuain', 'pipita'],
+    'Zlatan Ibrahimović': ['zlatan', 'ibra', 'ibrahimovic'],
+    'İlkay Gündoğan': ['gundogan'],
+    'Son Heung-min': ['son', 'heung min']
   };
 
   /* ---------- Normalización ---------- */
@@ -210,24 +245,47 @@
     return { id: id, label: label, type: type, test: test, tier: tier || 1 };
   }
 
-  var NAT = ['Argentina', 'Brasil', 'Francia', 'España', 'Portugal', 'Alemania', 'Italia', 'Inglaterra', 'Países Bajos', 'Uruguay', 'Bélgica', 'Croacia'];
-  var CLUBS = ['Real Madrid', 'Barcelona', 'Manchester United', 'Bayern Munich', 'Juventus', 'Liverpool', 'Chelsea', 'PSG', 'AC Milan', 'Inter', 'Manchester City', 'Atlético Madrid', 'Arsenal', 'Ajax', 'Tottenham', 'Monaco'];
+  // Nacionalidades con su rareza (tier): 1 = muy común … 4 = rara
+  var NAT_TIER = {
+    'Argentina': 1, 'Brasil': 1, 'Francia': 1, 'España': 1,
+    'Portugal': 2, 'Alemania': 2, 'Italia': 2, 'Inglaterra': 2,
+    'Países Bajos': 3, 'Uruguay': 3, 'Bélgica': 3, 'Croacia': 3,
+    'Colombia': 4, 'Chile': 4
+  };
+  // Clubes con su tier
+  var CLUB_TIER = {
+    'Real Madrid': 1, 'Barcelona': 1, 'Manchester United': 1, 'Bayern Munich': 1, 'Juventus': 1, 'Liverpool': 1,
+    'Chelsea': 2, 'PSG': 2, 'AC Milan': 2, 'Inter': 2, 'Manchester City': 2, 'Atlético Madrid': 2, 'Arsenal': 2, 'Tottenham': 2,
+    'Ajax': 3, 'Monaco': 3, 'Napoli': 3, 'Roma': 3, 'Porto': 3, 'Benfica': 3, 'Borussia Dortmund': 3,
+    'Sevilla': 3, 'Valencia': 3, 'Lazio': 3, 'Newcastle': 4, 'Leicester': 4, 'Everton': 4, 'Fiorentina': 4
+  };
+  // Ligas → clubes que pertenecen a cada una
+  var LEAGUES = {
+    'Jugó en la Premier League': { tier: 1, clubs: ['Manchester United', 'Manchester City', 'Arsenal', 'Chelsea', 'Liverpool', 'Tottenham', 'Aston Villa', 'Brighton', 'Leicester', 'Southampton', 'Everton', 'Leeds', 'West Ham', 'Blackburn', 'Newcastle'] },
+    'Jugó en LaLiga': { tier: 1, clubs: ['Barcelona', 'Real Madrid', 'Atlético Madrid', 'Sevilla', 'Valencia', 'Real Sociedad', 'Villarreal', 'Mallorca', 'Málaga', 'Levante'] },
+    'Jugó en la Serie A': { tier: 2, clubs: ['Napoli', 'Juventus', 'Inter', 'AC Milan', 'Fiorentina', 'Roma', 'Lazio', 'Parma', 'Udinese', 'Palermo'] },
+    'Jugó en la Bundesliga': { tier: 2, clubs: ['Bayern Munich', 'Borussia Dortmund', 'Schalke 04', 'Werder Bremen', 'Hamburgo', 'Bayer Leverkusen'] },
+    'Jugó en la Ligue 1': { tier: 3, clubs: ['PSG', 'Monaco', 'Lyon', 'Marseille', 'Lille'] }
+  };
 
   var CATS = [];
-  NAT.forEach(function (name) {
-    var tier = ['Argentina', 'Brasil', 'Francia', 'España'].indexOf(name) >= 0 ? 1 : (['Portugal', 'Alemania', 'Italia', 'Inglaterra'].indexOf(name) >= 0 ? 2 : 3);
-    CATS.push(cat('nat_' + name, name, 'nat', (function (nm) { return function (p) { return p.nat === nm; }; })(name), tier));
+  Object.keys(NAT_TIER).forEach(function (name) {
+    CATS.push(cat('nat_' + name, name, 'nat', (function (nm) { return function (p) { return p.nat === nm; }; })(name), NAT_TIER[name]));
   });
-  CLUBS.forEach(function (c) {
-    var tier = ['Real Madrid', 'Barcelona', 'Manchester United', 'Bayern Munich', 'Juventus', 'Liverpool'].indexOf(c) >= 0 ? 1 : 2;
-    CATS.push(cat('club_' + c, c, 'club', (function (cl) { return function (p) { return p.cl.indexOf(cl) >= 0; }; })(c), tier));
+  Object.keys(CLUB_TIER).forEach(function (c) {
+    CATS.push(cat('club_' + c, c, 'club', (function (cl) { return function (p) { return p.cl.indexOf(cl) >= 0; }; })(c), CLUB_TIER[c]));
+  });
+  Object.keys(LEAGUES).forEach(function (lab) {
+    var set = LEAGUES[lab].clubs;
+    CATS.push(cat('lg_' + lab, lab, 'league', (function (clubs) { return function (p) { return p.cl.some(function (x) { return clubs.indexOf(x) >= 0; }); }; })(set), LEAGUES[lab].tier));
   });
   CATS.push(cat('ach_wc', 'Ganó el Mundial', 'ach', function (p) { return !!p.wc; }, 1));
   CATS.push(cat('ach_ucl', 'Ganó la Champions', 'ach', function (p) { return !!p.ucl; }, 1));
   CATS.push(cat('ach_bdo', 'Ganó el Balón de Oro', 'ach', function (p) { return !!p.bdo; }, 2));
-  CATS.push(cat('pos_POR', 'Portero', 'pos', function (p) { return p.pos === 'POR'; }, 2));
+  CATS.push(cat('pos_DEL', 'Delantero', 'pos', function (p) { return p.pos === 'DEL'; }, 2));
   CATS.push(cat('pos_DEF', 'Defensa', 'pos', function (p) { return p.pos === 'DEF'; }, 2));
-  CATS.push(cat('pos_DEL', 'Delantero', 'pos', function (p) { return p.pos === 'DEL'; }, 3));
+  CATS.push(cat('pos_MED', 'Mediocampista', 'pos', function (p) { return p.pos === 'MED'; }, 3));
+  CATS.push(cat('pos_POR', 'Portero', 'pos', function (p) { return p.pos === 'POR'; }, 3));
 
   var CAT_BY_ID = {};
   CATS.forEach(function (c) { CAT_BY_ID[c.id] = c; });
@@ -244,11 +302,17 @@
   // ¿pueden dos categorías coexistir en un eje razonable? (evita nat×nat, pos×pos, mismo id)
   function compatibleAxisPair() { return true; }
 
+  // Config por nivel:
+  //  min      = respuestas mínimas por casilla
+  //  poolTier = rareza máxima de categorías admitidas (1 común … 4 rara)
+  //  hardMin/hardCells = al menos `hardCells` casillas deben tener ≤ `hardMin` respuestas
+  //  ai       = fuerza de la máquina
+  //  autocomplete = 'full' | 'limited' | 'none'
   var DIFF = {
-    facil:    { min: 5, poolTier: 1, ai: 'random' },
-    medio:    { min: 3, poolTier: 2, ai: 'greedy' },
-    dificil:  { min: 2, poolTier: 3, ai: 'hard' },
-    ultimate: { min: 1, poolTier: 3, ai: 'perfect' }
+    facil:    { min: 6, poolTier: 1, hardMin: 99, hardCells: 0, ai: 'random',  autocomplete: 'full' },
+    medio:    { min: 3, poolTier: 2, hardMin: 3,  hardCells: 2, ai: 'greedy',  autocomplete: 'full' },
+    dificil:  { min: 2, poolTier: 3, hardMin: 3,  hardCells: 4, ai: 'hard',    autocomplete: 'limited' },
+    ultimate: { min: 1, poolTier: 4, hardMin: 2,  hardCells: 5, ai: 'perfect', autocomplete: 'none' }
   };
 
   function pool(maxTier) {
@@ -264,29 +328,36 @@
     return a;
   }
 
-  // Genera una cuadrícula 3x3 resoluble para la dificultad dada
+  // Genera una cuadrícula 3x3 resoluble y con la exigencia pedida por el nivel
   function generateGrid(difficulty) {
     var cfg = DIFF[difficulty] || DIFF.facil;
     var candidates = pool(cfg.poolTier);
-    var minReq = cfg.min;
 
-    for (var relax = 0; relax < 4; relax++) {
-      var need = Math.max(1, minReq - relax);
-      for (var attempt = 0; attempt < 4000; attempt++) {
+    // Vamos relajando la exigencia si no encontramos algo perfecto
+    var plans = [
+      { need: cfg.min, hardMin: cfg.hardMin, hardCells: cfg.hardCells },
+      { need: Math.max(1, cfg.min), hardMin: cfg.hardMin + 1, hardCells: Math.max(0, cfg.hardCells - 1) },
+      { need: 1, hardMin: cfg.hardMin + 2, hardCells: Math.max(0, cfg.hardCells - 2) },
+      { need: 1, hardMin: 99, hardCells: 0 }
+    ];
+
+    for (var pi = 0; pi < plans.length; pi++) {
+      var plan = plans[pi];
+      for (var attempt = 0; attempt < 6000; attempt++) {
         var pick = shuffle(candidates);
         var rows = pick.slice(0, 3);
         var cols = pick.slice(3, 6);
-        // evitar dos nacionalidades / posiciones cruzadas siempre vacías se resuelve por 'need'
-        var ok = true;
+        var ok = true, hard = 0;
         var sol = [[], [], []];
         for (var r = 0; r < 3 && ok; r++) {
           for (var c = 0; c < 3 && ok; c++) {
             var s = solvers(rows[r], cols[c]);
-            if (s.length < need) { ok = false; break; }
+            if (s.length < plan.need) { ok = false; break; }
+            if (s.length <= plan.hardMin) hard++;
             sol[r][c] = s;
           }
         }
-        if (ok) {
+        if (ok && hard >= plan.hardCells) {
           return {
             rows: rows.map(catPublic),
             cols: cols.map(catPublic),

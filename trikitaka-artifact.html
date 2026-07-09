@@ -279,6 +279,34 @@
     .btn:hover { transform: translateY(-2px); border-color: var(--line-strong); }
     .btn.ghost { background: transparent; }
 
+    /* ---- Ajustes (toggles) ---- */
+    .toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .toggle {
+      border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+      border-radius: 12px; padding: 12px 13px; cursor: pointer; font: inherit; text-align: left;
+      display: flex; flex-direction: column; gap: 3px; transition: transform .12s, border-color .18s, background .18s;
+    }
+    .toggle:hover { transform: translateY(-2px); }
+    .toggle .tg-k { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
+    .toggle .tg-v { font-size: 15px; font-weight: 800; }
+    .toggle[aria-pressed="true"] { border-color: var(--o); background: var(--o-soft); box-shadow: inset 0 0 0 1px var(--o); }
+
+    /* ---- Cronómetro ---- */
+    .timer { display: flex; align-items: center; gap: 10px; margin: 0 2px 12px; }
+    .timer.hidden { display: none; }
+    .timer-bar { flex: 1; height: 8px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); overflow: hidden; }
+    .timer-fill { display: block; height: 100%; width: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--o), var(--x)); transition: width 1s linear, background .3s; }
+    .timer-fill.warn { background: linear-gradient(90deg, #ffb02e, var(--bad)); }
+    .timer-fill.danger { background: var(--bad); }
+    .timer-num { font-family: var(--f-mono); font-weight: 700; font-size: 15px; min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+    .timer-num.warn { color: var(--bad); }
+
+    /* ---- Pastillas de serie (mejor de 3) ---- */
+    .pips { display: inline-flex; gap: 3px; margin-left: 6px; vertical-align: middle; }
+    .pips i { width: 7px; height: 7px; border-radius: 50%; background: var(--line-strong); display: inline-block; }
+    .team.x .pips i.on { background: var(--x); }
+    .team.o .pips i.on { background: var(--o); }
+
     /* ============ MODAL ============ */
     .modal-bg {
       position: fixed; inset: 0; background: rgba(3,10,7,.62); backdrop-filter: blur(6px);
@@ -399,6 +427,16 @@
           <button class="lvl" data-lvl="ultimate" aria-pressed="false"><b>Ultimate</b><div class="dots">●●●●</div></button>
         </div>
 
+        <div class="label" style="margin-top:18px;">Ajustes de partida</div>
+        <div class="toggles">
+          <button class="toggle" id="fmtBtn" aria-pressed="true">
+            <span class="tg-k">Formato</span><span class="tg-v" id="fmtV">Al mejor de 3</span>
+          </button>
+          <button class="toggle" id="timeBtn" aria-pressed="true">
+            <span class="tg-k">Tiempo por turno</span><span class="tg-v" id="timeV">60 segundos</span>
+          </button>
+        </div>
+
         <button class="cta" id="playBtn" style="margin-top:20px;">Jugar ⚽</button>
 
         <p class="rules">
@@ -407,7 +445,7 @@
         </p>
       </div>
 
-      <div class="foot">Hecho con ⚽ · funciona sin conexión · instálalo como app</div>
+      <div class="foot">Aplicación hecha por cuki ⚽</div>
     </section>
 
     <!-- ======= JUEGO ======= -->
@@ -416,17 +454,24 @@
         <div class="team x" id="teamX">
           <span class="tk">L</span>
           <span class="nm" id="nameX">Local</span>
+          <span class="pips" id="pipsX"></span>
           <span class="sc" id="scoreX">0</span>
         </div>
         <div class="vs">VS</div>
         <div class="team o" id="teamO">
           <span class="tk">V</span>
           <span class="nm" id="nameO">Visita</span>
+          <span class="pips" id="pipsO"></span>
           <span class="sc" id="scoreO">0</span>
         </div>
       </div>
 
       <div class="status" id="status">Tu turno</div>
+
+      <div class="timer hidden" id="timer">
+        <div class="timer-bar"><span class="timer-fill" id="timerFill"></span></div>
+        <div class="timer-num" id="timerNum">60</div>
+      </div>
 
       <div class="grid-wrap">
         <div class="grid" id="grid"><!-- generado por JS --></div>
@@ -434,7 +479,7 @@
 
       <div class="controls">
         <button class="btn ghost" id="menuBtn">◀ Menú</button>
-        <button class="btn" id="againBtn">Nueva cuadrícula</button>
+        <button class="btn" id="againBtn">Reiniciar serie</button>
       </div>
 
       <div class="foot" id="lvlFoot"></div>
@@ -634,7 +679,35 @@
     { n: 'Gareth Bale', nat: 'Gales', cl: ['Tottenham', 'Real Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
     { n: 'Ryan Giggs', nat: 'Gales', cl: ['Manchester United'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
     { n: 'George Best', nat: 'Irlanda del Norte', cl: ['Manchester United'], wc: 0, ucl: 1, bdo: 1, pos: 'DEL' },
-    { n: 'Peter Schmeichel', nat: 'Dinamarca', cl: ['Manchester United', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' }
+    { n: 'Peter Schmeichel', nat: 'Dinamarca', cl: ['Manchester United', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' },
+
+    // --- Ampliación: más leyendas y variedad de ligas ---
+    { n: 'Andriy Shevchenko', nat: 'Ucrania', cl: ['Dynamo Kyiv', 'AC Milan', 'Chelsea'], wc: 0, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Pavel Nedvěd', nat: 'República Checa', cl: ['Lazio', 'Juventus'], wc: 0, ucl: 0, bdo: 1, pos: 'MED' },
+    { n: 'Hristo Stoichkov', nat: 'Bulgaria', cl: ['Barcelona'], wc: 0, ucl: 1, bdo: 1, pos: 'DEL' },
+    { n: 'Roberto Baggio', nat: 'Italia', cl: ['Fiorentina', 'Juventus', 'AC Milan', 'Inter'], wc: 0, ucl: 0, bdo: 1, pos: 'DEL' },
+    { n: 'Raúl González', nat: 'España', cl: ['Real Madrid', 'Schalke 04'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Petr Čech', nat: 'República Checa', cl: ['Chelsea', 'Arsenal'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' },
+    { n: 'Ashley Cole', nat: 'Inglaterra', cl: ['Arsenal', 'Chelsea'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+    { n: 'Vincent Kompany', nat: 'Bélgica', cl: ['Hamburgo', 'Manchester City'], wc: 0, ucl: 0, bdo: 0, pos: 'DEF' },
+    { n: 'Riyad Mahrez', nat: 'Argelia', cl: ['Leicester', 'Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'İlkay Gündoğan', nat: 'Alemania', cl: ['Borussia Dortmund', 'Manchester City', 'Barcelona'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Phil Foden', nat: 'Inglaterra', cl: ['Manchester City'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Bukayo Saka', nat: 'Inglaterra', cl: ['Arsenal'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Jude Bellingham', nat: 'Inglaterra', cl: ['Borussia Dortmund', 'Real Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Declan Rice', nat: 'Inglaterra', cl: ['West Ham', 'Arsenal'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Son Heung-min', nat: 'Corea del Sur', cl: ['Hamburgo', 'Tottenham'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Gonzalo Higuaín', nat: 'Argentina', cl: ['Real Madrid', 'Napoli', 'Juventus'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Paulo Dybala', nat: 'Argentina', cl: ['Palermo', 'Juventus', 'Roma'], wc: 1, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Isco', nat: 'España', cl: ['Málaga', 'Real Madrid'], wc: 0, ucl: 1, bdo: 0, pos: 'MED' },
+    { n: 'Koke', nat: 'España', cl: ['Atlético Madrid'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Alan Shearer', nat: 'Inglaterra', cl: ['Blackburn', 'Newcastle'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Gianfranco Zola', nat: 'Italia', cl: ['Napoli', 'Parma', 'Chelsea'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Radamel Falcao', nat: 'Colombia', cl: ['Porto', 'Atlético Madrid', 'Monaco', 'Manchester United', 'Chelsea'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'James Rodríguez', nat: 'Colombia', cl: ['Porto', 'Monaco', 'Real Madrid', 'Bayern Munich', 'Everton'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Arturo Vidal', nat: 'Chile', cl: ['Bayer Leverkusen', 'Juventus', 'Bayern Munich', 'Barcelona', 'Inter'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Alexis Sánchez', nat: 'Chile', cl: ['Udinese', 'Barcelona', 'Arsenal', 'Manchester United', 'Inter', 'Marseille'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Keylor Navas', nat: 'Costa Rica', cl: ['Levante', 'Real Madrid', 'PSG'], wc: 0, ucl: 1, bdo: 0, pos: 'POR' }
   ];
 
   /* ---------- Alias manuales (además del apellido y nombre completo) ---------- */
@@ -654,7 +727,14 @@
     'Ángel Di María': ['di maria', 'fideo'],
     "N'Golo Kanté": ['kante'],
     'Ronaldinho': ['ronaldinho', 'dinho'],
-    "Samuel Eto'o": ['etoo', 'eto o']
+    "Samuel Eto'o": ['etoo', 'eto o'],
+    'Raúl González': ['raul'],
+    'James Rodríguez': ['james'],
+    'Andriy Shevchenko': ['sheva', 'shevchenko'],
+    'Gonzalo Higuaín': ['higuain', 'pipita'],
+    'Zlatan Ibrahimović': ['zlatan', 'ibra', 'ibrahimovic'],
+    'İlkay Gündoğan': ['gundogan'],
+    'Son Heung-min': ['son', 'heung min']
   };
 
   /* ---------- Normalización ---------- */
@@ -686,24 +766,47 @@
     return { id: id, label: label, type: type, test: test, tier: tier || 1 };
   }
 
-  var NAT = ['Argentina', 'Brasil', 'Francia', 'España', 'Portugal', 'Alemania', 'Italia', 'Inglaterra', 'Países Bajos', 'Uruguay', 'Bélgica', 'Croacia'];
-  var CLUBS = ['Real Madrid', 'Barcelona', 'Manchester United', 'Bayern Munich', 'Juventus', 'Liverpool', 'Chelsea', 'PSG', 'AC Milan', 'Inter', 'Manchester City', 'Atlético Madrid', 'Arsenal', 'Ajax', 'Tottenham', 'Monaco'];
+  // Nacionalidades con su rareza (tier): 1 = muy común … 4 = rara
+  var NAT_TIER = {
+    'Argentina': 1, 'Brasil': 1, 'Francia': 1, 'España': 1,
+    'Portugal': 2, 'Alemania': 2, 'Italia': 2, 'Inglaterra': 2,
+    'Países Bajos': 3, 'Uruguay': 3, 'Bélgica': 3, 'Croacia': 3,
+    'Colombia': 4, 'Chile': 4
+  };
+  // Clubes con su tier
+  var CLUB_TIER = {
+    'Real Madrid': 1, 'Barcelona': 1, 'Manchester United': 1, 'Bayern Munich': 1, 'Juventus': 1, 'Liverpool': 1,
+    'Chelsea': 2, 'PSG': 2, 'AC Milan': 2, 'Inter': 2, 'Manchester City': 2, 'Atlético Madrid': 2, 'Arsenal': 2, 'Tottenham': 2,
+    'Ajax': 3, 'Monaco': 3, 'Napoli': 3, 'Roma': 3, 'Porto': 3, 'Benfica': 3, 'Borussia Dortmund': 3,
+    'Sevilla': 3, 'Valencia': 3, 'Lazio': 3, 'Newcastle': 4, 'Leicester': 4, 'Everton': 4, 'Fiorentina': 4
+  };
+  // Ligas → clubes que pertenecen a cada una
+  var LEAGUES = {
+    'Jugó en la Premier League': { tier: 1, clubs: ['Manchester United', 'Manchester City', 'Arsenal', 'Chelsea', 'Liverpool', 'Tottenham', 'Aston Villa', 'Brighton', 'Leicester', 'Southampton', 'Everton', 'Leeds', 'West Ham', 'Blackburn', 'Newcastle'] },
+    'Jugó en LaLiga': { tier: 1, clubs: ['Barcelona', 'Real Madrid', 'Atlético Madrid', 'Sevilla', 'Valencia', 'Real Sociedad', 'Villarreal', 'Mallorca', 'Málaga', 'Levante'] },
+    'Jugó en la Serie A': { tier: 2, clubs: ['Napoli', 'Juventus', 'Inter', 'AC Milan', 'Fiorentina', 'Roma', 'Lazio', 'Parma', 'Udinese', 'Palermo'] },
+    'Jugó en la Bundesliga': { tier: 2, clubs: ['Bayern Munich', 'Borussia Dortmund', 'Schalke 04', 'Werder Bremen', 'Hamburgo', 'Bayer Leverkusen'] },
+    'Jugó en la Ligue 1': { tier: 3, clubs: ['PSG', 'Monaco', 'Lyon', 'Marseille', 'Lille'] }
+  };
 
   var CATS = [];
-  NAT.forEach(function (name) {
-    var tier = ['Argentina', 'Brasil', 'Francia', 'España'].indexOf(name) >= 0 ? 1 : (['Portugal', 'Alemania', 'Italia', 'Inglaterra'].indexOf(name) >= 0 ? 2 : 3);
-    CATS.push(cat('nat_' + name, name, 'nat', (function (nm) { return function (p) { return p.nat === nm; }; })(name), tier));
+  Object.keys(NAT_TIER).forEach(function (name) {
+    CATS.push(cat('nat_' + name, name, 'nat', (function (nm) { return function (p) { return p.nat === nm; }; })(name), NAT_TIER[name]));
   });
-  CLUBS.forEach(function (c) {
-    var tier = ['Real Madrid', 'Barcelona', 'Manchester United', 'Bayern Munich', 'Juventus', 'Liverpool'].indexOf(c) >= 0 ? 1 : 2;
-    CATS.push(cat('club_' + c, c, 'club', (function (cl) { return function (p) { return p.cl.indexOf(cl) >= 0; }; })(c), tier));
+  Object.keys(CLUB_TIER).forEach(function (c) {
+    CATS.push(cat('club_' + c, c, 'club', (function (cl) { return function (p) { return p.cl.indexOf(cl) >= 0; }; })(c), CLUB_TIER[c]));
+  });
+  Object.keys(LEAGUES).forEach(function (lab) {
+    var set = LEAGUES[lab].clubs;
+    CATS.push(cat('lg_' + lab, lab, 'league', (function (clubs) { return function (p) { return p.cl.some(function (x) { return clubs.indexOf(x) >= 0; }); }; })(set), LEAGUES[lab].tier));
   });
   CATS.push(cat('ach_wc', 'Ganó el Mundial', 'ach', function (p) { return !!p.wc; }, 1));
   CATS.push(cat('ach_ucl', 'Ganó la Champions', 'ach', function (p) { return !!p.ucl; }, 1));
   CATS.push(cat('ach_bdo', 'Ganó el Balón de Oro', 'ach', function (p) { return !!p.bdo; }, 2));
-  CATS.push(cat('pos_POR', 'Portero', 'pos', function (p) { return p.pos === 'POR'; }, 2));
+  CATS.push(cat('pos_DEL', 'Delantero', 'pos', function (p) { return p.pos === 'DEL'; }, 2));
   CATS.push(cat('pos_DEF', 'Defensa', 'pos', function (p) { return p.pos === 'DEF'; }, 2));
-  CATS.push(cat('pos_DEL', 'Delantero', 'pos', function (p) { return p.pos === 'DEL'; }, 3));
+  CATS.push(cat('pos_MED', 'Mediocampista', 'pos', function (p) { return p.pos === 'MED'; }, 3));
+  CATS.push(cat('pos_POR', 'Portero', 'pos', function (p) { return p.pos === 'POR'; }, 3));
 
   var CAT_BY_ID = {};
   CATS.forEach(function (c) { CAT_BY_ID[c.id] = c; });
@@ -720,11 +823,17 @@
   // ¿pueden dos categorías coexistir en un eje razonable? (evita nat×nat, pos×pos, mismo id)
   function compatibleAxisPair() { return true; }
 
+  // Config por nivel:
+  //  min      = respuestas mínimas por casilla
+  //  poolTier = rareza máxima de categorías admitidas (1 común … 4 rara)
+  //  hardMin/hardCells = al menos `hardCells` casillas deben tener ≤ `hardMin` respuestas
+  //  ai       = fuerza de la máquina
+  //  autocomplete = 'full' | 'limited' | 'none'
   var DIFF = {
-    facil:    { min: 5, poolTier: 1, ai: 'random' },
-    medio:    { min: 3, poolTier: 2, ai: 'greedy' },
-    dificil:  { min: 2, poolTier: 3, ai: 'hard' },
-    ultimate: { min: 1, poolTier: 3, ai: 'perfect' }
+    facil:    { min: 6, poolTier: 1, hardMin: 99, hardCells: 0, ai: 'random',  autocomplete: 'full' },
+    medio:    { min: 3, poolTier: 2, hardMin: 3,  hardCells: 2, ai: 'greedy',  autocomplete: 'full' },
+    dificil:  { min: 2, poolTier: 3, hardMin: 3,  hardCells: 4, ai: 'hard',    autocomplete: 'limited' },
+    ultimate: { min: 1, poolTier: 4, hardMin: 2,  hardCells: 5, ai: 'perfect', autocomplete: 'none' }
   };
 
   function pool(maxTier) {
@@ -740,29 +849,36 @@
     return a;
   }
 
-  // Genera una cuadrícula 3x3 resoluble para la dificultad dada
+  // Genera una cuadrícula 3x3 resoluble y con la exigencia pedida por el nivel
   function generateGrid(difficulty) {
     var cfg = DIFF[difficulty] || DIFF.facil;
     var candidates = pool(cfg.poolTier);
-    var minReq = cfg.min;
 
-    for (var relax = 0; relax < 4; relax++) {
-      var need = Math.max(1, minReq - relax);
-      for (var attempt = 0; attempt < 4000; attempt++) {
+    // Vamos relajando la exigencia si no encontramos algo perfecto
+    var plans = [
+      { need: cfg.min, hardMin: cfg.hardMin, hardCells: cfg.hardCells },
+      { need: Math.max(1, cfg.min), hardMin: cfg.hardMin + 1, hardCells: Math.max(0, cfg.hardCells - 1) },
+      { need: 1, hardMin: cfg.hardMin + 2, hardCells: Math.max(0, cfg.hardCells - 2) },
+      { need: 1, hardMin: 99, hardCells: 0 }
+    ];
+
+    for (var pi = 0; pi < plans.length; pi++) {
+      var plan = plans[pi];
+      for (var attempt = 0; attempt < 6000; attempt++) {
         var pick = shuffle(candidates);
         var rows = pick.slice(0, 3);
         var cols = pick.slice(3, 6);
-        // evitar dos nacionalidades / posiciones cruzadas siempre vacías se resuelve por 'need'
-        var ok = true;
+        var ok = true, hard = 0;
         var sol = [[], [], []];
         for (var r = 0; r < 3 && ok; r++) {
           for (var c = 0; c < 3 && ok; c++) {
             var s = solvers(rows[r], cols[c]);
-            if (s.length < need) { ok = false; break; }
+            if (s.length < plan.need) { ok = false; break; }
+            if (s.length <= plan.hardMin) hard++;
             sol[r][c] = s;
           }
         }
-        if (ok) {
+        if (ok && hard >= plan.hardCells) {
           return {
             rows: rows.map(catPublic),
             cols: cols.map(catPublic),
@@ -970,6 +1086,19 @@
       });
     });
 
+    // Ajustes: formato (mejor de 3 / única) y cronómetro (60 s / sin límite)
+    var bestOf = true, timerEnabled = true;
+    $('#fmtBtn').addEventListener('click', function () {
+      bestOf = !bestOf;
+      this.setAttribute('aria-pressed', bestOf);
+      $('#fmtV').textContent = bestOf ? 'Al mejor de 3' : '1 partida';
+    });
+    $('#timeBtn').addEventListener('click', function () {
+      timerEnabled = !timerEnabled;
+      this.setAttribute('aria-pressed', timerEnabled);
+      $('#timeV').textContent = timerEnabled ? '60 segundos' : 'Sin límite';
+    });
+
     /* ---------- Estado de partida ---------- */
     var G = null;                 // grid actual
     var board = [];               // 9 marcas '', 'X', 'O'
@@ -980,7 +1109,13 @@
     var scores = { X: 0, O: 0 };
     var activeCell = -1;
     var busy = false;             // bloquea input durante turno IA / animaciones
+    var matchOver = false;        // se decidió la serie (o partida única)
+    var TARGET = 2;               // victorias para ganar el "mejor de 3"
+    var autoMode = 'full';        // 'full' | 'limited' | 'none' (autocompletado)
+    var TURN_SECONDS = 60, timeLeft = 60, timerId = null;
     var LVL_NAME = { facil: 'Fácil', medio: 'Medio', dificil: 'Difícil', ultimate: 'Ultimate' };
+
+    function currentRound() { return scores.X + scores.O + 1; }
 
     function humanIs(m) { return mode === 'local' ? true : m === 'X'; }
     function teamName(m) {
@@ -996,16 +1131,33 @@
 
     /* ---------- Iniciar ---------- */
     function startGame() {
+      autoMode = FGC.DIFF[level].autocomplete || 'full';
       scores = { X: 0, O: 0 };
-      $('#scoreX').textContent = '0';
-      $('#scoreO').textContent = '0';
+      matchOver = false;
       $('#nameX').textContent = teamName('X');
       $('#nameO').textContent = teamName('O');
       $('#teamX .tk').textContent = mode === 'local' ? '1' : 'L';
       $('#teamO .tk').textContent = mode === 'local' ? '2' : 'V';
-      $('#lvlFoot').textContent = 'Nivel ' + LVL_NAME[level] + ' · ' + (mode === 'cpu' ? 'vs Máquina' : '2 jugadores');
+      renderScores();
+      updateFoot();
       show('screen-game');
       newGrid();
+    }
+
+    function renderScores() {
+      $('#scoreX').textContent = scores.X;
+      $('#scoreO').textContent = scores.O;
+      ['X', 'O'].forEach(function (m) {
+        var el = $('#pips' + m);
+        if (!bestOf) { el.innerHTML = ''; return; }
+        var html = '';
+        for (var i = 0; i < TARGET; i++) html += '<i class="' + (i < scores[m] ? 'on' : '') + '"></i>';
+        el.innerHTML = html;
+      });
+    }
+    function updateFoot() {
+      var fmt = bestOf ? ('Al mejor de 3 · Ronda ' + currentRound()) : 'Partida única';
+      $('#lvlFoot').textContent = 'Nivel ' + LVL_NAME[level] + ' · ' + (mode === 'cpu' ? 'vs Máquina' : '2 jugadores') + ' · ' + fmt;
     }
 
     function newGrid() {
@@ -1016,9 +1168,22 @@
       over = false;
       busy = false;
       turn = 'X';
+      updateFoot();
       renderGrid();
       updateTurn();
-      // si por modo empieza la IA no aplica (humano X siempre empieza)
+      beginTurnFlow();   // arranca cronómetro del humano (X siempre empieza) o la IA
+    }
+
+    // Tras (re)establecer el turno: si toca a la máquina, juega; si a un humano, cronómetro
+    function beginTurnFlow() {
+      if (over) return;
+      if (mode === 'cpu' && turn === 'O') { stopTimer(); $('#timer').classList.add('hidden'); maybeAI(); }
+      else startTimer();
+    }
+    function advanceTurn() {
+      turn = other(turn);
+      updateTurn();
+      beginTurnFlow();
     }
 
     /* ---------- Render ---------- */
@@ -1118,6 +1283,7 @@
       $('#chipRow').textContent = G.rows[r].label;
       $('#chipCol').textContent = G.cols[c].label;
       $('#answer').value = '';
+      $('#answer').placeholder = autoMode === 'none' ? 'Escribe el nombre completo…' : 'Ej. Messi…';
       $('#feedback').textContent = '';
       $('#feedback').className = 'feedback';
       $('#hintLine').innerHTML = '<a href="#" id="hintBtn" style="color:var(--muted)">💡 Pista</a>';
@@ -1134,8 +1300,11 @@
 
     var answerEl = $('#answer'), suggEl = $('#sugg');
     answerEl.addEventListener('input', function () {
-      var list = FGC.suggest(answerEl.value, 8);
-      renderSugg(list);
+      if (autoMode === 'none') { hideSugg(); return; }
+      var minCh = autoMode === 'limited' ? 3 : 1;
+      if (FGC.normalize(answerEl.value).length < minCh) { hideSugg(); return; }
+      var lim = autoMode === 'limited' ? 5 : 8;
+      renderSugg(FGC.suggest(answerEl.value, lim));
     });
     answerEl.addEventListener('keydown', function (e) {
       var items = suggEl.querySelectorAll('li');
@@ -1170,9 +1339,14 @@
         e.preventDefault();
         var sols = solutionsFor(activeCell).filter(function (n) { return !used[n]; });
         var n = sols.length;
-        var sample = sols[Math.floor(Math.random() * sols.length)];
-        var masked = sample.split(' ').map(function (w) { return w[0] + '·'.repeat(Math.max(1, w.length - 1)); }).join(' ');
-        $('#hintLine').innerHTML = 'Hay <b>' + n + '</b> respuesta' + (n === 1 ? '' : 's') + ' válida' + (n === 1 ? '' : 's') + '. Una empieza así: <b>' + esc(masked) + '</b>';
+        var txt = 'Hay <b>' + n + '</b> respuesta' + (n === 1 ? '' : 's') + ' posible' + (n === 1 ? '' : 's') + '.';
+        // En niveles altos la pista es más tacaña: solo revela las iniciales en Fácil.
+        if (autoMode === 'full' && n > 0) {
+          var sample = sols[Math.floor(Math.random() * sols.length)];
+          var masked = sample.split(' ').map(function (w) { return w[0] + '·'.repeat(Math.max(1, w.length - 1)); }).join(' ');
+          txt += ' Una empieza así: <b>' + esc(masked) + '</b>';
+        }
+        $('#hintLine').innerHTML = txt;
       });
     }
 
@@ -1183,6 +1357,7 @@
       var res = FGC.validateGuess(answerEl.value, G.rowIds[r], G.colIds[c], used);
       var fb = $('#feedback');
       if (res.ok) {
+        stopTimer();
         fb.textContent = '✓ ¡' + res.player + '! Casilla conquistada.';
         fb.className = 'feedback ok';
         var placed = res.player;
@@ -1197,6 +1372,7 @@
         mEl.classList.remove('shake'); void mEl.offsetWidth; mEl.classList.add('shake');
         if (res.reason === 'wrong' || res.reason === 'used') {
           // fallo real: se pierde el turno
+          stopTimer();
           setTimeout(function () { closeModal(); passTurn((res.player || 'Ese jugador') + ' no valía. Pierdes el turno.'); }, 900);
         }
       }
@@ -1204,6 +1380,7 @@
 
     /* ---------- Colocar ficha ---------- */
     function claim(idx, mark, playerName) {
+      stopTimer();
       board[idx] = mark;
       cellPlayer[idx] = playerName;
       used[playerName] = true;
@@ -1216,19 +1393,16 @@
       if (res && res.winner !== 'draw') return finish(res);
       if (res && res.winner === 'draw') return finish({ winner: 'draw' });
       if (!anyMoveLeft()) return finish(resolveByCount());
-      turn = other(turn);
-      updateTurn();
-      maybeAI();
+      advanceTurn();
     }
 
     function passTurn(msg) {
       if (over) return;
+      stopTimer();
       flashStatus(msg, true);
       refreshDead();
       if (!anyMoveLeft()) return finish(resolveByCount());
-      turn = other(turn);
-      updateTurn();
-      maybeAI();
+      advanceTurn();
     }
 
     function refreshDead() {
@@ -1242,6 +1416,36 @@
       st.innerHTML = esc(msg);
       st.style.color = warn ? 'var(--bad)' : '';
       setTimeout(function () { st.style.color = ''; if (!over) updateTurn(); }, 1400);
+    }
+
+    /* ---------- Cronómetro (60 s por turno) ---------- */
+    function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+    function startTimer() {
+      stopTimer();
+      var t = $('#timer');
+      if (!timerEnabled) { t.classList.add('hidden'); return; }
+      t.classList.remove('hidden');
+      timeLeft = TURN_SECONDS;
+      renderTimer();
+      timerId = setInterval(function () {
+        timeLeft--;
+        renderTimer();
+        if (timeLeft <= 0) { stopTimer(); onTimeUp(); }
+      }, 1000);
+    }
+    function renderTimer() {
+      var fill = $('#timerFill'), num = $('#timerNum');
+      fill.style.width = Math.max(0, timeLeft / TURN_SECONDS * 100) + '%';
+      num.textContent = Math.max(0, timeLeft);
+      var warn = timeLeft <= 10, danger = timeLeft <= 5;
+      fill.classList.toggle('warn', warn && !danger);
+      fill.classList.toggle('danger', danger);
+      num.classList.toggle('warn', warn);
+    }
+    function onTimeUp() {
+      if (over) return;
+      if ($('#modalBg').classList.contains('show')) closeModal();
+      passTurn('¡Se acabó el tiempo! Turno perdido.');
     }
 
     /* ---------- IA ---------- */
@@ -1282,41 +1486,67 @@
       return { winner: 'draw' };
     }
 
-    /* ---------- Fin ---------- */
+    /* ---------- Fin de ronda / serie ---------- */
     function finish(res) {
       over = true;
       busy = false;
+      stopTimer();
+      $('#timer').classList.add('hidden');
       $('#teamX').classList.remove('active');
       $('#teamO').classList.remove('active');
       if (res.line) res.line.forEach(function (i) { cellEl(i).classList.add('win'); });
 
-      var kick = $('#endKick'), big = $('#endBig'), msg = $('#endMsg');
+      var kick = $('#endKick'), big = $('#endBig'), msg = $('#endMsg'), btn = $('#endBtn');
+      var setBig = function (grad) { big.style.background = grad; big.style.webkitBackgroundClip = 'text'; big.style.backgroundClip = 'text'; };
+
       if (res.winner === 'draw') {
+        // El empate no suma; en "mejor de 3" se repite la ronda.
+        matchOver = !bestOf;
         kick.textContent = 'Silbato final';
         big.textContent = 'EMPATE';
-        big.style.background = 'linear-gradient(120deg,var(--muted),var(--ink))';
-        big.style.webkitBackgroundClip = 'text'; big.style.backgroundClip = 'text';
-        msg.textContent = 'Nadie completó una línea. ¡Revancha!';
+        setBig('linear-gradient(120deg,var(--muted),var(--ink))');
+        msg.textContent = bestOf ? ('Ronda ' + currentRound() + ' empatada. Se juega de nuevo. Marcador ' + scores.X + '–' + scores.O + '.') : 'Nadie completó una línea.';
+        btn.textContent = bestOf ? 'Repetir ronda ▶' : 'Jugar otra vez';
         $('#status').innerHTML = '<b>Empate</b>';
       } else {
-        var winnerName = teamName(res.winner);
-        scores[res.winner]++;
-        $('#score' + res.winner).textContent = scores[res.winner];
-        var human = humanIs(res.winner);
-        kick.textContent = res.byCount ? 'Gana por casillas' : '¡Tres en línea!';
-        big.textContent = (mode === 'cpu' && res.winner === 'O') ? 'GANA LA IA' : '¡GOOOL!';
-        big.style.background = 'linear-gradient(120deg,var(--x),var(--o))';
-        big.style.webkitBackgroundClip = 'text'; big.style.backgroundClip = 'text';
-        msg.textContent = winnerName + ' gana la partida' + (res.byCount ? ' por mayoría de casillas.' : '.');
+        var w = res.winner, winnerName = teamName(w);
+        scores[w]++;
+        renderScores();
+        matchOver = !bestOf || scores[w] >= TARGET;
+
+        var youWin = (mode === 'local') || w === 'X';
+        setBig('linear-gradient(120deg,var(--x),var(--o))');
+
+        if (matchOver) {
+          kick.textContent = bestOf ? 'Fin de la serie' : (res.byCount ? 'Gana por casillas' : '¡Tres en línea!');
+          big.textContent = (mode === 'cpu' && w === 'O') ? 'GANA LA MÁQUINA' : (bestOf ? '¡SERIE!' : '¡GOOOL!');
+          msg.textContent = bestOf
+            ? (winnerName + ' gana la serie ' + scores[w] + '–' + scores[other(w)] + '.')
+            : (winnerName + ' gana' + (res.byCount ? ' por mayoría de casillas.' : '.'));
+          btn.textContent = bestOf ? 'Nueva serie' : 'Jugar otra vez';
+          if (youWin) confetti();
+        } else {
+          kick.textContent = res.byCount ? 'Ronda por casillas' : '¡Tres en línea!';
+          big.textContent = '¡GOL!';
+          msg.textContent = winnerName + ' gana la ronda. Marcador ' + scores.X + '–' + scores.O + '. Faltan ' + (TARGET - scores[w]) + ' para la serie.';
+          btn.textContent = 'Siguiente ronda ▶';
+          if (youWin) confetti();
+        }
         $('#status').innerHTML = '<b>' + esc(winnerName) + '</b> gana';
-        if (mode === 'local' || res.winner === 'X') confetti();
       }
+      updateFoot();
       $('#end').classList.add('show');
     }
 
-    $('#endBtn').addEventListener('click', function () { $('#end').classList.remove('show'); newGrid(); });
-    $('#againBtn').addEventListener('click', function () { $('#end').classList.remove('show'); newGrid(); });
-    $('#menuBtn').addEventListener('click', function () { $('#end').classList.remove('show'); show('screen-menu'); });
+    // Botón del overlay: nueva serie/partida si terminó todo; si no, siguiente ronda.
+    $('#endBtn').addEventListener('click', function () {
+      $('#end').classList.remove('show');
+      if (matchOver) startGame();   // reinicia marcador y empieza serie/partida nueva
+      else newGrid();               // siguiente ronda, mantiene marcador
+    });
+    // Reiniciar serie desde los controles del juego
+    $('#againBtn').addEventListener('click', function () { $('#end').classList.remove('show'); startGame(); });
+    $('#menuBtn').addEventListener('click', function () { $('#end').classList.remove('show'); stopTimer(); show('screen-menu'); });
     $('#playBtn').addEventListener('click', startGame);
     document.querySelector('#modalBg').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
 
