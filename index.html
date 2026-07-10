@@ -422,6 +422,64 @@
       *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
     }
     :focus-visible { outline: 2px solid var(--o); outline-offset: 2px; }
+
+    /* ============================================================
+       REDISEÑO v2 — más profundidad, iconos/banderas y escritorio
+       ============================================================ */
+    body {
+      background:
+        radial-gradient(1100px 620px at 12% -12%, rgba(74,208,236,.12), transparent 58%),
+        radial-gradient(1000px 600px at 88% -6%, rgba(255,206,74,.10), transparent 55%),
+        radial-gradient(1300px 900px at 50% 130%, rgba(0,0,0,.40), transparent 62%),
+        var(--bg);
+      background-attachment: fixed;
+    }
+    .wrap { max-width: 640px; }
+
+    /* Cabeceras de categoría con icono + etiqueta corta */
+    .hcell { gap: 3px; padding: 6px 4px; }
+    .hcell .cicon { font-size: clamp(16px, 4.8vw, 24px); line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,.45)); }
+    .hcell .t { font-size: clamp(8.5px, 2.4vw, 12px); font-weight: 800; opacity: .96; }
+    .hcell.type-ach .t { color: var(--x); }
+    .hcell.type-club .t, .hcell.type-league .t { color: var(--o); }
+    .hcell.type-pos .t { color: var(--good); }
+
+    /* Celdas tipo cromo */
+    .cell { background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.14)); }
+    .cell .q { font-size: clamp(24px, 7vw, 34px); }
+    .cell .pcard { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 2px; width: 100%; }
+    .cell .p-flag { font-size: clamp(18px, 6vw, 30px); line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,.45)); }
+    .cell .p-name { font-size: clamp(9.5px, 2.6vw, 13px); font-weight: 800; text-align: center; line-height: 1.08; text-wrap: balance; padding: 0 2px; }
+    .cell .p-pos { font-size: 9px; font-weight: 900; letter-spacing: .06em; padding: 1px 7px; border-radius: 999px; }
+    .cell .p-pos.por { background: #6ec6ff; color: #021018; }
+    .cell .p-pos.def { background: #7ee0a0; color: #04160c; }
+    .cell .p-pos.med { background: #ffd36b; color: #201400; }
+    .cell .p-pos.del { background: #ff8f8f; color: #200606; }
+    .cell.taken { box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 26px -16px rgba(0,0,0,.8); }
+    .cell .who { box-shadow: 0 2px 6px -2px rgba(0,0,0,.55); }
+
+    .chip { display: inline-flex; align-items: center; gap: 5px; }
+
+    /* Escritorio: tablero grande y con presencia (no un móvil estirado) */
+    @media (min-width: 900px) {
+      .wrap { max-width: 880px; }
+      .brand h1 { font-size: 30px; }
+      #screen-menu .hero h2 { font-size: 60px; }
+      .grid { gap: 10px; padding: 14px; border-radius: 24px; }
+      .grid { grid-template-columns: minmax(120px, .8fr) repeat(3, 1fr); grid-template-rows: minmax(72px, auto) repeat(3, 1fr); }
+      .hcell .cicon { font-size: 30px; }
+      .hcell .t { font-size: 14px; }
+      .board-head { max-width: 880px; }
+      .cell .p-flag { font-size: 40px; }
+      .cell .p-name { font-size: 16px; }
+      .cell .q { font-size: 44px; }
+      .status { font-size: 15px; }
+      .controls { max-width: 520px; margin-left: auto; margin-right: auto; }
+      .timer { max-width: 620px; margin-left: auto; margin-right: auto; }
+    }
+    @media (min-width: 900px) and (min-height: 700px) {
+      .grid-wrap { max-width: 760px; margin: 0 auto; }
+    }
   </style>
 </head>
 <body>
@@ -703,6 +761,40 @@
 
     function currentRound() { return scores.X + scores.O + 1; }
 
+    /* ---------- Iconos, banderas y fichas ---------- */
+    var FLAG = {
+      'Argentina': '🇦🇷', 'Brasil': '🇧🇷', 'Francia': '🇫🇷', 'España': '🇪🇸', 'Portugal': '🇵🇹',
+      'Alemania': '🇩🇪', 'Italia': '🇮🇹', 'Inglaterra': '🇬🇧', 'Países Bajos': '🇳🇱', 'Uruguay': '🇺🇾',
+      'Bélgica': '🇧🇪', 'Croacia': '🇭🇷', 'Colombia': '🇨🇴', 'Chile': '🇨🇱', 'México': '🇲🇽',
+      'Marruecos': '🇲🇦', 'Senegal': '🇸🇳', 'Suecia': '🇸🇪', 'Dinamarca': '🇩🇰', 'Polonia': '🇵🇱',
+      'Noruega': '🇳🇴', 'Serbia': '🇷🇸', 'Gales': '🇬🇧', 'Egipto': '🇪🇬', 'Ucrania': '🇺🇦',
+      'Costa de Marfil': '🇨🇮', 'Camerún': '🇨🇲', 'Ghana': '🇬🇭', 'Nigeria': '🇳🇬', 'Austria': '🇦🇹',
+      'Turquía': '🇹🇷', 'Japón': '🇯🇵', 'Corea del Sur': '🇰🇷', 'Bulgaria': '🇧🇬', 'Rumanía': '🇷🇴',
+      'Escocia': '🇬🇧', 'República Checa': '🇨🇿', 'Estados Unidos': '🇺🇸', 'Australia': '🇦🇺',
+      'Hungría': '🇭🇺', 'Ecuador': '🇪🇨', 'Georgia': '🇬🇪', 'Suiza': '🇨🇭', 'Grecia': '🇬🇷',
+      'Irán': '🇮🇷', 'Rusia': '🇷🇺', 'Irlanda': '🇮🇪', 'Argelia': '🇩🇿', 'Malí': '🇲🇱',
+      'Finlandia': '🇫🇮', 'Liberia': '🇱🇷'
+    };
+    function catIcon(cat) {
+      if (!cat) return '•';
+      if (cat.type === 'nat') return FLAG[cat.label] || '🌍';
+      if (cat.type === 'club') return '🛡️';
+      if (cat.type === 'league') return '🏟️';
+      if (cat.id === 'ach_wc') return '🏆';
+      if (cat.id === 'ach_ucl') return '⭐';
+      if (cat.id === 'ach_bdo') return '🥇';
+      if (cat.id === 'pos_POR') return '🧤';
+      if (cat.id === 'pos_DEF') return '🧱';
+      if (cat.id === 'pos_MED') return '🧠';
+      if (cat.id === 'pos_DEL') return '🎯';
+      return '•';
+    }
+    function shortLabel(cat) {
+      return cat.label.replace(/^Jugó en (la |el )?/, '').replace(/^Ganó (el |la )?/, '');
+    }
+    var PBYNAME = {};
+    FGC.players.forEach(function (p) { PBYNAME[p.n] = p; });
+
     function humanIs(m) { return mode === 'local' ? true : m === 'X'; }
     function teamName(m) {
       if (mode === 'local') return m === 'X' ? 'Jugador 1' : 'Jugador 2';
@@ -790,15 +882,15 @@
       // cabeceras columnas
       for (var c = 0; c < 3; c++) {
         var h = document.createElement('div');
-        h.className = 'hcell';
-        h.innerHTML = '<span class="t">' + esc(G.cols[c].label) + '</span>';
+        h.className = 'hcell hcol type-' + G.cols[c].type;
+        h.innerHTML = '<span class="cicon">' + catIcon(G.cols[c]) + '</span><span class="t">' + esc(shortLabel(G.cols[c])) + '</span>';
         g.appendChild(h);
       }
       // filas
       for (var r = 0; r < 3; r++) {
         var rh = document.createElement('div');
-        rh.className = 'hcell';
-        rh.innerHTML = '<span class="t">' + esc(G.rows[r].label) + '</span>';
+        rh.className = 'hcell hrow type-' + G.rows[r].type;
+        rh.innerHTML = '<span class="cicon">' + catIcon(G.rows[r]) + '</span><span class="t">' + esc(shortLabel(G.rows[r])) + '</span>';
         g.appendChild(rh);
         for (var cc = 0; cc < 3; cc++) {
           g.appendChild(makeCell(r, cc));
@@ -824,7 +916,15 @@
       el.classList.remove('x', 'o', 'taken', 'dead', 'playable');
       if (m) {
         el.classList.add('taken', m.toLowerCase());
-        el.innerHTML = '<span class="who">' + m + '</span><span class="pname">' + esc(cellPlayer[idx]) + '</span>';
+        var p = PBYNAME[cellPlayer[idx]];
+        var flag = p ? (FLAG[p.nat] || '🌍') : '';
+        var pos = p ? p.pos : '';
+        el.innerHTML = '<span class="who">' + m + '</span>' +
+          '<span class="pcard">' +
+          '<span class="p-flag">' + flag + '</span>' +
+          '<span class="p-name">' + esc(cellPlayer[idx]) + '</span>' +
+          (pos ? '<span class="p-pos ' + pos.toLowerCase() + '">' + pos + '</span>' : '') +
+          '</span>';
       } else {
         el.innerHTML = '<span class="q">?</span>';
         if (!hasUnusedSolution(idx)) el.classList.add('dead');
@@ -885,8 +985,8 @@
     function openModal(idx) {
       activeCell = idx;
       var r = Math.floor(idx / 3), c = idx % 3;
-      $('#chipRow').textContent = G.rows[r].label;
-      $('#chipCol').textContent = G.cols[c].label;
+      $('#chipRow').innerHTML = catIcon(G.rows[r]) + ' ' + esc(G.rows[r].label);
+      $('#chipCol').innerHTML = catIcon(G.cols[c]) + ' ' + esc(G.cols[c].label);
       $('#answer').value = '';
       $('#answer').placeholder = autoMode === 'none' ? 'Escribe el nombre completo…' : 'Ej. Messi…';
       $('#feedback').textContent = '';
