@@ -1631,7 +1631,28 @@
     { n: 'Samuel Chukwueze', nat: 'Nigeria', cl: ['Villarreal', 'AC Milan'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
     { n: 'Nayef Aguerd', nat: 'Marruecos', cl: ['Rennes', 'West Ham', 'Real Sociedad'], wc: 0, ucl: 0, bdo: 0, pos: 'DEF' },
     { n: 'Amine Harit', nat: 'Marruecos', cl: ['Schalke 04', 'Marseille'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
-    { n: 'Willian Pacho', nat: 'Ecuador', cl: ['Royal Antwerp', 'Eintracht Frankfurt', 'PSG'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' }
+    { n: 'Willian Pacho', nat: 'Ecuador', cl: ['Royal Antwerp', 'Eintracht Frankfurt', 'PSG'], wc: 0, ucl: 1, bdo: 0, pos: 'DEF' },
+
+    // --- Ronda 2: reconocibles + equipos de media tabla (estilo Crystal Palace) ---
+    { n: 'Bojan Krkić', nat: 'España', cl: ['Barcelona', 'Roma', 'AC Milan', 'Ajax', 'Stoke'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Gerard Deulofeu', nat: 'España', cl: ['Barcelona', 'Everton', 'AC Milan', 'Watford', 'Udinese'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Troy Deeney', nat: 'Inglaterra', cl: ['Watford', 'Birmingham'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Lukas Podolski', nat: 'Alemania', cl: ['Köln', 'Bayern Munich', 'Arsenal', 'Inter', 'Galatasaray'], wc: 1, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Anthony Modeste', nat: 'Francia', cl: ['Bordeaux', 'Köln', 'Borussia Dortmund'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Divock Origi', nat: 'Bélgica', cl: ['Lille', 'Liverpool', 'AC Milan'], wc: 0, ucl: 1, bdo: 0, pos: 'DEL' },
+    { n: 'Christian Benteke', nat: 'Bélgica', cl: ['Genk', 'Aston Villa', 'Liverpool', 'Crystal Palace'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Loïc Rémy', nat: 'Francia', cl: ['Marseille', 'QPR', 'Newcastle', 'Chelsea', 'Crystal Palace'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Cheikhou Kouyaté', nat: 'Senegal', cl: ['Anderlecht', 'West Ham', 'Crystal Palace', 'Nottingham Forest'], wc: 0, ucl: 0, bdo: 0, pos: 'MED' },
+    { n: 'Odsonne Édouard', nat: 'Francia', cl: ['PSG', 'Celtic', 'Crystal Palace'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Emmanuel Adebayor', nat: 'Togo', cl: ['Monaco', 'Arsenal', 'Manchester City', 'Real Madrid', 'Tottenham', 'Crystal Palace'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Andros Townsend', nat: 'Inglaterra', cl: ['Tottenham', 'Newcastle', 'Crystal Palace', 'Everton'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Vicente Guaita', nat: 'España', cl: ['Valencia', 'Getafe', 'Crystal Palace'], wc: 0, ucl: 0, bdo: 0, pos: 'POR' },
+    { n: 'Papiss Cissé', nat: 'Senegal', cl: ['Freiburg', 'Newcastle'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Nikola Kalinić', nat: 'Croacia', cl: ['Blackburn', 'Fiorentina', 'AC Milan', 'Atlético Madrid'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Scott McKenna', nat: 'Escocia', cl: ['Aberdeen', 'Nottingham Forest'], wc: 0, ucl: 0, bdo: 0, pos: 'DEF' },
+    { n: 'Matt Miazga', nat: 'Estados Unidos', cl: ['New York Red Bulls', 'Chelsea', 'Vitesse'], wc: 0, ucl: 0, bdo: 0, pos: 'DEF' },
+    { n: 'Habib Diallo', nat: 'Senegal', cl: ['Metz', 'Strasbourg', 'Al-Shabab'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' },
+    { n: 'Peter Odemwingie', nat: 'Nigeria', cl: ['Lille', 'Lokomotiv Moscú', 'West Bromwich Albion', 'Stoke'], wc: 0, ucl: 0, bdo: 0, pos: 'DEL' }
   ];
   // Deduplicar por nombre UNIENDO datos: si el mismo jugador aparece varias veces
   // (a veces una copia trae más clubes que otra), se fusionan los clubes y los
@@ -1725,7 +1746,7 @@
     'Perú': 4, 'Canadá': 4,
     'Argelia': 4, 'Liberia': 4, 'Irlanda del Norte': 4, 'Costa Rica': 4, 'Finlandia': 4,
     'Malí': 4, 'Armenia': 4, 'Guinea': 4, 'Paraguay': 4, 'Venezuela': 4,
-    'Jamaica': 4, 'RD Congo': 4, 'Gabón': 4, 'Nueva Zelanda': 4
+    'Jamaica': 4, 'RD Congo': 4, 'Gabón': 4, 'Nueva Zelanda': 4, 'Togo': 4
   };
   // Clubes con su tier (cada uno es una categoría "Jugó en <club>")
   var CLUB_TIER = {
@@ -1749,7 +1770,13 @@
     'Braga': 4, 'Trabzonspor': 4, 'Fenerbahçe': 4, 'Galatasaray': 4, 'Grêmio': 4, 'Internacional': 4,
     'Fluminense': 4, 'Botafogo': 4, 'Racing': 4, 'Independiente': 4, 'Al-Nassr': 4, 'Al-Hilal': 4,
     'Al-Ittihad': 4, 'Al-Ahli': 4, 'Getafe': 4, 'Girona': 4, 'Deportivo': 4, 'Mallorca': 4,
-    'CSKA Moscú': 4, 'Spartak': 4, 'Club Brugge': 4, 'Nottingham Forest': 4
+    'CSKA Moscú': 4, 'Spartak': 4, 'Club Brugge': 4, 'Nottingham Forest': 4,
+    // Equipos reconocibles de media tabla / históricos (estilo Crystal Palace)
+    'Stoke': 4, 'Sunderland': 4, 'Watford': 4, 'Sheffield United': 4, 'Norwich': 4,
+    'Middlesbrough': 4, 'West Bromwich Albion': 4, 'Blackburn': 4, 'Hull': 4,
+    'Köln': 4, 'Union Berlin': 4, 'Hertha': 4, 'Genk': 4, 'Standard Lieja': 4,
+    'Empoli': 4, 'Osasuna': 4, 'Rayo Vallecano': 4, 'Toulouse': 4, 'Strasbourg': 4,
+    'Aberdeen': 4, 'Utrecht': 4, 'Vitesse': 4, 'QPR': 4
   };
   // Ligas → clubes que pertenecen a cada una (cobertura amplia para no rechazar
   // por error a quien jugó en la liga aunque fuera en un club "menor")
@@ -1836,8 +1863,16 @@
     ultimate: { min: 1, poolTier: 4, hardMin: 2,  hardCells: 6, onesCells: 2, ai: 'perfect', autocomplete: 'full', seconds: 45 }
   };
 
+  // Pool de categorías elegibles como EJE del tablero. Se exige un mínimo de
+  // jugadores (AXIS_MIN) para que dos categorías puedan cruzarse de forma fiable:
+  // así los clubes muy poco poblados siguen siendo respuestas válidas al escribir,
+  // pero no se eligen como cabecera (lo que antes podía impedir generar el tablero).
+  var AXIS_MIN = 3;
   function pool(maxTier) {
-    return CATS.filter(function (c) { return c.tier <= maxTier; });
+    var p = CATS.filter(function (c) { return c.tier <= maxTier && c._members.length >= AXIS_MIN; });
+    // Salvaguarda: si por lo que sea quedaran pocas, relajamos el mínimo.
+    if (p.length < 8) p = CATS.filter(function (c) { return c.tier <= maxTier && c._members.length >= 2; });
+    return p;
   }
 
   function shuffle(a) {
