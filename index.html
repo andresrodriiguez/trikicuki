@@ -480,6 +480,37 @@
     @media (min-width: 900px) and (min-height: 700px) {
       .grid-wrap { max-width: 760px; margin: 0 auto; }
     }
+
+    /* Cabeceras ahora son botones (tocar = ver categoría completa) */
+    .hcell { appearance: none; -webkit-appearance: none; border: none; font: inherit; color: var(--ink); cursor: pointer; transition: background .15s; }
+    .hcell:hover { background: rgba(255,255,255,.05); border-radius: 10px; }
+    .hcell.corner { cursor: default; }
+    .hcell.corner:hover { background: transparent; }
+
+    /* Toast */
+    .toast {
+      position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom));
+      transform: translateX(-50%) translateY(10px);
+      background: var(--panel); color: var(--ink); border: 1px solid var(--line-strong);
+      border-radius: 12px; padding: 10px 16px; font-size: 13.5px; font-weight: 700;
+      box-shadow: var(--shadow); opacity: 0; pointer-events: none;
+      transition: opacity .2s, transform .2s; z-index: 60; max-width: 90vw; text-align: center;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Sugerencias con bandera */
+    .sugg li { display: flex; align-items: center; gap: 9px; }
+    .sugg .s-flag { font-size: 18px; flex: none; }
+    .sugg .s-name { font-weight: 700; }
+    .sugg .s-meta { margin-left: auto; color: var(--muted); font-size: 12px; }
+
+    /* Modal de ayuda */
+    .modal.help .help-p { color: var(--muted); font-size: 13.5px; line-height: 1.6; margin: 10px 2px; }
+    .modal.help .help-p b { color: var(--ink); }
+    .legend-title { text-transform: uppercase; letter-spacing: .12em; font-size: 11px; color: var(--muted); font-weight: 800; margin: 8px 2px 4px; }
+    .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 12px; margin: 4px 2px; }
+    .legend span { font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+    .legend b { font-size: 17px; width: 24px; text-align: center; }
   </style>
 </head>
 <body>
@@ -495,6 +526,7 @@
         </div>
       </div>
       <div style="display:flex; gap:8px;">
+        <button class="icon-btn" id="helpBtn" title="Cómo se juega" aria-label="Ayuda y leyenda">?</button>
         <button class="icon-btn" id="soundBtn" title="Sonido" aria-label="Activar o silenciar sonido" aria-pressed="true">🔊</button>
         <button class="icon-btn" id="themeBtn" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
       </div>
@@ -649,6 +681,28 @@
     </div>
   </div>
 
+  <!-- ======= AYUDA / LEYENDA ======= -->
+  <div class="modal-bg" id="helpBg">
+    <div class="modal help" role="dialog" aria-modal="true" aria-label="Cómo se juega">
+      <div class="cross"><span class="chip">📖 Cómo se juega</span></div>
+      <p class="help-p">Conquista una casilla nombrando a un <b>futbolista</b> que cumpla la categoría de su <b>fila</b> y la de su <b>columna</b>. Empieza a escribir y elige de la lista. Si aciertas, la casilla es tuya; si fallas, pierdes el turno. <b>Tres en línea, ganas.</b> Toca una categoría para ver su nombre completo.</p>
+      <div class="legend-title">Leyenda de iconos</div>
+      <div class="legend">
+        <span><b>🏆</b> Ganó el Mundial</span>
+        <span><b>⭐</b> Ganó la Champions</span>
+        <span><b>🥇</b> Balón de Oro</span>
+        <span><b>🛡️</b> Jugó en el club</span>
+        <span><b>🏟️</b> Jugó en la liga</span>
+        <span><b>🇦🇷</b> Nacionalidad</span>
+        <span><b>🧤</b> Portero</span>
+        <span><b>🧱</b> Defensa</span>
+        <span><b>🧠</b> Mediocampista</span>
+        <span><b>🎯</b> Delantero</span>
+      </div>
+      <div class="modal-actions"><button class="btn primary" id="helpClose" style="flex:1;">Entendido</button></div>
+    </div>
+  </div>
+
   <!-- ======= FIN DE PARTIDA ======= -->
   <div class="end" id="end">
     <div class="box">
@@ -676,6 +730,11 @@
       var isDark = cur ? cur === 'dark' : mqDark;
       document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
     });
+
+    /* ---------- Ayuda / leyenda ---------- */
+    $('#helpBtn').addEventListener('click', function () { $('#helpBg').classList.add('show'); });
+    $('#helpClose').addEventListener('click', function () { $('#helpBg').classList.remove('show'); });
+    $('#helpBg').addEventListener('click', function (e) { if (e.target === this) this.classList.remove('show'); });
 
     /* ---------- Sonido (Web Audio, sintetizado, sin archivos) ---------- */
     var AC = null, soundOn = true;
@@ -881,16 +940,22 @@
 
       // cabeceras columnas
       for (var c = 0; c < 3; c++) {
-        var h = document.createElement('div');
+        var h = document.createElement('button');
         h.className = 'hcell hcol type-' + G.cols[c].type;
+        h.title = G.cols[c].label;
+        h.setAttribute('aria-label', 'Columna: ' + G.cols[c].label);
         h.innerHTML = '<span class="cicon">' + catIcon(G.cols[c]) + '</span><span class="t">' + esc(shortLabel(G.cols[c])) + '</span>';
+        (function (lab) { h.addEventListener('click', function () { toast(lab); }); })(G.cols[c].label);
         g.appendChild(h);
       }
       // filas
       for (var r = 0; r < 3; r++) {
-        var rh = document.createElement('div');
+        var rh = document.createElement('button');
         rh.className = 'hcell hrow type-' + G.rows[r].type;
+        rh.title = G.rows[r].label;
+        rh.setAttribute('aria-label', 'Fila: ' + G.rows[r].label);
         rh.innerHTML = '<span class="cicon">' + catIcon(G.rows[r]) + '</span><span class="t">' + esc(shortLabel(G.rows[r])) + '</span>';
+        (function (lab) { rh.addEventListener('click', function () { toast(lab); }); })(G.rows[r].label);
         g.appendChild(rh);
         for (var cc = 0; cc < 3; cc++) {
           g.appendChild(makeCell(r, cc));
@@ -904,9 +969,23 @@
       el.className = 'cell';
       el.dataset.idx = idx;
       el.dataset.r = r; el.dataset.c = c;
+      var cross = G.rows[r].label + ' × ' + G.cols[c].label;
+      el.title = cross;
+      el.setAttribute('aria-label', cross);
       paintCell(el, idx);
       el.addEventListener('click', function () { onCellClick(idx, el); });
       return el;
+    }
+
+    /* Aviso breve (toast) al tocar una categoría */
+    var toastTimer = null;
+    function toast(msg) {
+      var t = $('#toast');
+      if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; document.body.appendChild(t); }
+      t.textContent = msg;
+      t.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2200);
     }
 
     function cellEl(idx) { return $('.cell[data-idx="' + idx + '"]'); }
@@ -1022,7 +1101,12 @@
     function renderSugg(list) {
       suggIdx = -1;
       if (!list.length) { hideSugg(); return; }
-      suggEl.innerHTML = list.map(function (n) { return '<li data-name="' + esc(n) + '">' + esc(n) + '</li>'; }).join('');
+      suggEl.innerHTML = list.map(function (n) {
+        var p = PBYNAME[n];
+        var flag = p ? (FLAG[p.nat] || '🌍') : '';
+        var meta = p ? ('<span class="s-meta">' + esc(p.nat) + '</span>') : '';
+        return '<li data-name="' + esc(n) + '"><span class="s-flag">' + flag + '</span><span class="s-name">' + esc(n) + '</span>' + meta + '</li>';
+      }).join('');
       suggEl.classList.add('show');
       suggEl.querySelectorAll('li').forEach(function (li) {
         li.addEventListener('click', function () { answerEl.value = li.dataset.name; hideSugg(); answerEl.focus(); });
