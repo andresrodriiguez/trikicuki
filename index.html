@@ -498,10 +498,12 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* Sugerencias con bandera */
+    /* Sugerencias con bandera y datos bajo el nombre */
     .sugg li { display: flex; align-items: center; gap: 9px; }
     .sugg .s-flag { font-size: 18px; flex: none; }
-    .sugg .s-name { font-weight: 700; }
+    .sugg .s-body { display: flex; flex-direction: column; min-width: 0; }
+    .sugg .s-name { font-weight: 700; line-height: 1.25; }
+    .sugg .s-sub { color: var(--muted); font-size: 11.5px; line-height: 1.2; }
     .sugg .s-meta { margin-left: auto; color: var(--muted); font-size: 12px; }
 
     /* Modal de ayuda */
@@ -576,7 +578,7 @@
 
         <p class="rules">
           <b>Cómo se juega:</b> por turnos eliges una casilla y escribes un futbolista. Si cumple las dos categorías, la casilla es tuya.
-          Si fallas, pierdes el turno. La dificultad cambia lo raras que son las categorías y la astucia de la máquina.
+          Si fallas, pierdes el turno. El saque alterna cada ronda. La dificultad cambia lo raras que son las categorías y la astucia de la máquina.
         </p>
       </div>
 
@@ -807,6 +809,7 @@
     var cellPlayer = [];          // nombre por celda
     var used = {};                // nombres usados
     var turn = 'X';
+    var startMark = 'X';          // quién saca la ronda actual (alterna cada ronda)
     var over = false;
     var scores = { X: 0, O: 0 };
     var activeCell = -1;
@@ -875,6 +878,7 @@
       TURN_SECONDS = levelSeconds();
       scores = { X: 0, O: 0 };
       matchOver = false;
+      startMark = 'X';            // cada serie nueva arranca sacando X (luego alterna)
       $('#nameX').textContent = teamName('X');
       $('#nameO').textContent = teamName('O');
       $('#teamX .tk').textContent = mode === 'local' ? '1' : 'L';
@@ -908,11 +912,11 @@
       used = {};
       over = false;
       busy = false;
-      turn = 'X';
+      turn = startMark;  // saca quien toque esta ronda (alterna ronda a ronda)
       updateFoot();
       renderGrid();
       updateTurn();
-      beginTurnFlow();   // arranca cronómetro del humano (X siempre empieza) o la IA
+      beginTurnFlow();   // arranca cronómetro del humano o juega la IA si saca ella
     }
 
     // Tras (re)establecer el turno: si toca a la máquina, juega; si a un humano, cronómetro
@@ -1104,8 +1108,9 @@
       suggEl.innerHTML = list.map(function (n) {
         var p = PBYNAME[n];
         var flag = p ? (FLAG[p.nat] || '🌍') : '';
-        var meta = p ? ('<span class="s-meta">' + esc(p.nat) + '</span>') : '';
-        return '<li data-name="' + esc(n) + '"><span class="s-flag">' + flag + '</span><span class="s-name">' + esc(n) + '</span>' + meta + '</li>';
+        // Bajo el nombre: nacionalidad y año de nacimiento (si está verificado)
+        var sub = p ? ('<span class="s-sub">' + esc(p.nat) + (p.b ? ' · n. ' + p.b : '') + '</span>') : '';
+        return '<li data-name="' + esc(n) + '"><span class="s-flag">' + flag + '</span><span class="s-body"><span class="s-name">' + esc(n) + '</span>' + sub + '</span></li>';
       }).join('');
       suggEl.classList.add('show');
       suggEl.querySelectorAll('li').forEach(function (li) {
@@ -1325,9 +1330,11 @@
     }
 
     // Botón del overlay: nueva serie/partida si terminó todo; si no, siguiente ronda.
+    // El saque alterna cada ronda (también si la ronda quedó en empate y se repite).
     $('#endBtn').addEventListener('click', function () {
       if (online) { netNextRound(); return; }
       $('#end').classList.remove('show');
+      startMark = other(startMark);
       if (matchOver) startGame();   // reinicia marcador y empieza serie/partida nueva
       else newGrid();               // siguiente ronda, mantiene marcador
     });
